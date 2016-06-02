@@ -1,0 +1,21 @@
+Package: gower
+Maintainer: Mark van der Loo <mark.vanderloo@gmail.com>
+License: GPL-3
+Title: Gower similarity measure
+LazyData: no
+Type: Package
+LazyLoad: yes
+Authors@R: c( person("Mark", "van der Loo", role=c("aut","cre"),email="mark.vanderloo@gmail.com"))
+Description: Compute Gower's similarity (or distance) coefficient based on a
+    parallelized C-based implementation.
+Version: 0.0.0.1
+Depends:
+    R (>= 2.15.3)
+Imports:
+    parallel
+URL: https://github.com/markvanderloo/gower
+BugReports: https://github.com/markvanderloo/gower/issues
+Date: 2016-06-01
+Suggests:
+    testthat
+RoxygenNote: 5.0.1
