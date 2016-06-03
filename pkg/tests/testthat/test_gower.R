@@ -1,18 +1,33 @@
 
 context("Basic distance elements")
 
+dL <- expand.grid(c(TRUE,FALSE),c(TRUE,FALSE))
 test_that("distance between logicals",{
-  d <- expand.grid(c(TRUE,FALSE),c(TRUE,FALSE))
-  expect_equal(gower_dist(d[1],d[2]),c(0,1,1,NaN))
+  expect_equal(gower_dist(dL[1],dL[2]),c(0,1,1,NaN))
 })
 
+bands <- c("Grand Magus","Skull Fist")
+dF <- expand.grid(bands,bands)
 test_that("distance between factor variables",{
-  bands <- c("Grand Magus","Skull Fist","Cathedral")
-  d <- expand.grid(bands,bands[1:2])
-  expect_equal(gower_dist(d[1],d[2]),c(0,1,1,1,0,1))
+  expect_equal(gower_dist(dF[1],dF[2]),c(0,1,1,0))
 })
 
+dN <- data.frame(x = as.numeric(1:4),y=as.numeric(c(1,1,2,3)))
 test_that("distance between numerical variables",{
-  d <- data.frame(x = as.numeric(1:3),y=as.numeric(c(1,1,5)))
-  expect_equal(gower_dist(d[1],d[2]),c(0,0.25,0.5))
+  expect_equal(gower_dist(dN[1],dN[2]),c(0,1/3,1/3,1/3))
 })
+
+test_that("multivariate dataset",{
+  dM1 <- data.frame(x=dL[,1],y=dF[,1],z=dN[,1])  
+  dM2 <- data.frame(x=dL[,2],y=dF[,2],z=dN[,2])
+  expect_equal(gower_dist(x=dM1,y=dM2), c(0,7/9,7/9,1/6))
+  # check symmetry
+  expect_equal(gower_dist(dM1,dM2),gower_dist(dM2,dM1))
+  # not counting NA's in the denominator
+  dM1[array(c(2,3,4,1,2,3),dim=c(3,2))] <- NA
+  expect_equal(gower_dist(dM1,dM2), c(0,3/4,3/4,0))
+})
+
+
+
+

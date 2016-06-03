@@ -32,7 +32,7 @@
 // presence or absence of a character. x and y are 0 (FALSE) or 1 (TRUE)
 static inline void gower_logi(int x, int y, double *dijk, double *sijk){
    *dijk = (double) ((x | y) & !(x == NA_LOGICAL || y == NA_LOGICAL));
-   *sijk = (double) (x * y);    
+   *sijk = (double) (*dijk == 1) ? (x * y) : 0.0;    
 }
 
 // equality of categorical variables, encoded as x, y in {1,2,...,N}.
@@ -43,7 +43,8 @@ static inline void gower_cat(int x, int y, double *dijk, double *sijk){
 
 // comparison of numerical variables, by absolute difference divided by range.
 static inline void gower_num(double x, double y, double R, double *dijk, double *sijk){
-  *dijk = (double) !(x == NA_REAL || y == NA_REAL);
+  *dijk = (double) (isfinite(x) & isfinite(y));
+
   *sijk = (*dijk==1.0) ? (1.0-fabs(x-y)/R) : 0.0;
 }
 
@@ -88,6 +89,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP logi_, SEXP cat_, SEXP num_, SEXP ranges_){
       numerator   += dijk * sijk;
       denominator += dijk;
     }
+
     for ( int k=0; k < n_cat; k++){
       gower_cat( INTEGER(VECTOR_ELT(x,cat[k]))[i]
              ,   INTEGER(VECTOR_ELT(y,cat[k]))[j], &dijk, &sijk);
