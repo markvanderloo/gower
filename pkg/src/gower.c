@@ -48,37 +48,83 @@ static inline void gower_num(double x, double y, double R, double *dijk, double 
   *sijk = (*dijk==1.0) ? (1.0-fabs(x-y)/R) : 0.0;
 }
 
+// compute range over x,y
+double get_dbl_range(double *x, double *y, int nx, int ny){
+  double min=x[0], max=x[0];
+  double *ix = x, *iy=y;
+
+  for ( int i=0; i<nx; i++, ix++){
+    if(isfinite(*ix)) {
+      if ( *ix > max ) {
+          max = *ix;
+      } else {
+        if (*ix < min){
+          min = *ix;
+        }
+      }
+    }
+  }
 
 
-SEXP R_gower(SEXP x, SEXP y, SEXP logi_, SEXP cat_, SEXP num_, SEXP ranges_){
+  for ( int i=0; i<ny; i++, iy++){
+    if(isfinite(*iy)) {
+      if ( *iy > max ) {
+          max = *iy;
+      } else {
+        if (*iy < min){
+          min = *iy;
+        }
+      }
+    }
+  }  
+
+  return (max-min);  
+}
+
+
+
+
+
+SEXP R_gower(SEXP x, SEXP y, SEXP logi_, SEXP cat_, SEXP num_){
 
   int *logi = INTEGER(logi_)
     , *cat  =  INTEGER(cat_)
     , *num  =  INTEGER(num_);
 
+  int n_logi = length(logi_)
+    , n_cat  = length(cat_)
+    , n_num  = length(num_);
 
-  double *ranges = REAL(ranges_);
+  // R to C indices
+  for ( int i = 0; i<n_logi; i++) logi[i]--; 
+  for ( int i = 0; i<n_cat; i++) cat[i]--; 
+  for ( int i = 0; i<n_num; i++) num[i]--; 
+
+  int nrow_x = length(VECTOR_ELT(x, 0L))
+    , nrow_y = length(VECTOR_ELT(y, 0L));
 
 
+  double *ranges = (double *) malloc(n_num * sizeof(double));
+  for (int k=0; k<n_num; k++){ 
+      ranges[k] = get_dbl_range(
+          REAL(VECTOR_ELT(x,num[k]))
+        , REAL(VECTOR_ELT(y,num[k]))
+        , nrow_x
+        , nrow_y
+     );
+  }
 
-  int nrow_x = xlength(VECTOR_ELT(x, 0L))
-    , nrow_y = xlength(VECTOR_ELT(y, 0L));
+
 
   SEXP out;
   out = PROTECT(allocVector(REALSXP, MAX(nrow_x, nrow_y)));
   double *dist = REAL(out);
 
-  int n_logi = length(logi_)
-    , n_cat  = length(cat_)
-    , n_num  = length(num_)
-    , i = 0L
-    , j = 0L;
 
-  for ( int i =0; i<n_logi; i++) logi[i]--; 
-  for ( int i =0; i<n_cat; i++) cat[i]--; 
-  for ( int i =0; i<n_num; i++) num[i]--; 
+
 
   double numerator, denominator, dijk, sijk;
+  int i = 0L, j = 0L;
 
   for ( int m=0; m<MAX(nrow_x, nrow_y); m++ ){
     numerator = denominator = 0.0;
@@ -104,6 +150,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP logi_, SEXP cat_, SEXP num_, SEXP ranges_){
       numerator += dijk * sijk;
       denominator += dijk;
     }
+
   
     dist[m] = (denominator == 0) ? R_NaN : 1 - (numerator / denominator);
     // recycle shortest vector.
@@ -111,6 +158,8 @@ SEXP R_gower(SEXP x, SEXP y, SEXP logi_, SEXP cat_, SEXP num_, SEXP ranges_){
     j = (j+1 == nrow_y) ? 0 : j+1;
 
   }
+
+  free(ranges);
   UNPROTECT(1);
   
   return out;
