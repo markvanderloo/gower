@@ -10,9 +10,9 @@
 #' 
 #' @export
 gower_dist <- function(x, y){
-  ilog = which(sapply(x,is.logical))
-  icat = which(sapply(x,is.factor))
-  inum = which(sapply(x,is.numeric))
+
+  pair <- match(names(x),names(y),nomatch = 0L)
+  factor_pair <- sapply(x,is.factor)
+  .Call(R_gower,x,y,pair, as.integer(factor_pair))
   
-  .Call(R_gower,x,y,ilog,icat, inum)
 }

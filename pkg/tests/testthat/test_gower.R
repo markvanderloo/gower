@@ -3,18 +3,18 @@ context("Basic distance elements")
 
 dL <- expand.grid(c(TRUE,FALSE),c(TRUE,FALSE))
 test_that("distance between logicals",{
-  expect_equal(gower_dist(dL[1],dL[2]),c(0,1,1,NaN))
+  expect_equal(gower_dist(data.frame(x=dL[,1]),data.frame(x=dL[,2])),c(0,1,1,NaN))
 })
 
 bands <- c("Grand Magus","Skull Fist")
 dF <- expand.grid(bands,bands)
 test_that("distance between factor variables",{
-  expect_equal(gower_dist(dF[1],dF[2]),c(0,1,1,0))
+  expect_equal(gower_dist(data.frame(x=dF[,1]),data.frame(x=dF[,2])),c(0,1,1,0))
 })
 
 dN <- data.frame(x = as.numeric(1:4),y=as.numeric(c(1,1,2,3)))
 test_that("distance between numerical variables",{
-  expect_equal(gower_dist(dN[1],dN[2]),c(0,1/3,1/3,1/3))
+  expect_equal(gower_dist(data.frame(x=dN[,1]),data.frame(x=dN[,2])),c(0,1/3,1/3,1/3))
 })
 
 test_that("multivariate dataset",{
