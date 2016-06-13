@@ -244,17 +244,6 @@ static double get_xy_range(SEXP x, SEXP y){
 }
 
 
-// for testing purposes only
-/*
-SEXP R_range(SEXP x){
-  SEXP out;
-  out = PROTECT(allocVector(REALSXP, 1L));
-  REAL(out)[0] = get_range(x);
-  UNPROTECT(1);
-  return out;
-}*/
-
-
 SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_){
 
   int *pair = INTEGER(pair_)
@@ -285,8 +274,10 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_){
   int type_y;
   double R;
 
+
+  // loop over coluns of x, compare with paired columns in y.
   for ( int j = 0; j < npair; j++){
-    if (pair[j] == -1L) continue;
+    if (pair[j] == -1L) continue; // no paired column.
     switch( TYPEOF(VECTOR_ELT(x,j)) ) {
       case LGLSXP : 
         gower_logi(INTEGER(VECTOR_ELT(x,j)), nrow_x
