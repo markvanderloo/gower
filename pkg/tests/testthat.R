@@ -1,4 +1,3 @@
-library(testthat)
-test_check("gower")
+if ( require(testthat) ) test_check("gower")
 
 

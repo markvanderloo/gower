@@ -42,8 +42,8 @@ static inline void gower_logi(int *x, int nx, int *y, int ny
   double *inum = num,  *iden=den;
 
   for ( int k = 0; k < nt; k++, inum++, iden++){
-    dijk = (double) ((x[i] | y[j]) & !(x[i] == NA_LOGICAL || y[j] == NA_LOGICAL));
-    sijk = (double) (dijk == 1.0) ? (x[i] * y[j]) : 0.0;
+    dijk = (double) ((x[i] | y[j]) & !((x[i] == NA_INTEGER) | (y[j] == NA_INTEGER)));
+    sijk = (dijk == 1.0) ? (double) (x[i] * y[j]) : 0.0;
     *inum += dijk * sijk; 
     *iden += dijk;
     i = RECYCLE(i, nx);
@@ -266,7 +266,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_){
        , *den = (double *) R_alloc(nt, sizeof(double));
  
   double *iden = den, *inum = num;
-  for ( int j=0; j<npair; j++, *iden++, *inum++){
+  for ( int j=0; j<nt; j++, *iden++, *inum++){
     *iden = 0.0;
     *inum = 0.0;
   }
@@ -322,7 +322,8 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_){
   inum = num;
   iden = den;
   for (int i=0; i<nt; i++, inum++, iden++){
-    *inum = 1.0 - (*inum)/(*iden);
+    (*inum) = (*iden == 0.0) ? R_NaN : (1.0 - (*inum)/(*iden));
+//     num[i] = (den[i] == 0.0) ? R_NaN : (1.0 - (num[i])/(den[i]));
   }
 
   UNPROTECT(1);
