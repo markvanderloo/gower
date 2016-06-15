@@ -32,6 +32,9 @@
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 #define RECYCLE(N, K) ((N) + 1L < (K) ? (N) + 1L : 0L )
 
+// determine when something is numerically zero.
+static double EPS = 1e-8;
+
 // presence or absence of a character. x and y are 0 (FALSE) or 1 (TRUE)
 static inline void gower_logi(int *x, int nx, int *y, int ny
    , double *num, double *den)
@@ -82,6 +85,11 @@ static inline void gower_num(double *x, int nx, double *y, int ny,double R
   int i=0, j=0;
   double *inum = num,  *iden=den;
 
+  if ( !isfinite(R) || R < EPS ){
+    warning("skipping variable with zero or non-finite range\n");
+    return;
+  }
+
   for ( int k=0; k<nt; k++, inum++, iden++ ){
     dijk = (double) (isfinite(x[i]) & isfinite(y[j]));
     sijk = (dijk==1.0) ? (1.0-fabs(x[i]-y[j])/R) : 0.0;
@@ -102,6 +110,11 @@ static inline void gower_dbl_int(double *x, int nx, int *y, int ny,double R
   int i=0, j=0;
   double *inum = num,  *iden=den;
 
+  if ( !isfinite(R) || R < EPS ){
+    warning("skipping variable with zero or non-finite range\n");
+    return;
+  }
+
   for ( int k=0; k<nt; k++, inum++, iden++ ){
     dijk = (double) (isfinite(x[i]) & (y[j] != NA_INTEGER));
     sijk = (dijk==1.0) ? (1.0-fabs(x[i] - ((double) y[j]) )/R) : 0.0;
@@ -119,6 +132,11 @@ static inline void gower_int(int *x, int nx, int *y, int ny, double R
   double dijk, sijk;
   int i=0, j=0;
   double *inum = num,  *iden=den;
+
+  if ( !isfinite(R) || R == 0 ){
+    warning("skipping variable with zero or non-finite range\n");
+    return;
+  }
 
   for ( int k=0; k<nt; k++, inum++, iden++ ){
     dijk = (double) ( (x[i] !=NA_INTEGER) & (y[j] != NA_INTEGER));
@@ -244,11 +262,15 @@ static double get_xy_range(SEXP x, SEXP y){
 }
 
 
-SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_){
+SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_){
 
   int *pair = INTEGER(pair_)
     , *factor_pair = INTEGER(factor_pair_);
   int npair = length(pair_);
+
+  // set global epsilon
+  EPS = REAL(eps_)[0];
+
 
   // from R [base-1] to C [base-0] index for columns.
   for ( int j=0; j<npair; j++) pair[j]--;
@@ -273,7 +295,6 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_){
 
   int type_y;
   double R;
-
 
   // loop over coluns of x, compare with paired columns in y.
   for ( int j = 0; j < npair; j++){
@@ -323,7 +344,6 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_){
   iden = den;
   for (int i=0; i<nt; i++, inum++, iden++){
     (*inum) = (*iden == 0.0) ? R_NaN : (1.0 - (*inum)/(*iden));
-//     num[i] = (den[i] == 0.0) ? R_NaN : (1.0 - (num[i])/(den[i]));
   }
 
   UNPROTECT(1);

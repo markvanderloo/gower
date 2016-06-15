@@ -24,8 +24,13 @@
 #'
 #' @param x \code{[data.frame]}
 #' @param y \code{[data.frame]}
-#' @param pair_x \code{[numeric|character] (optional)} index in \code{x}. See Details below.
-#' @param pair_y \code{[numeric|character] (optional)} index in \code{y}. See Details below.
+#' @param pair_x \code{[numeric|character] (optional)} index in \code{x}. 
+#'    See Details below.
+#' @param pair_y \code{[numeric|character] (optional)} index in \code{y}. 
+#'    See Details below.
+#' @param eps = \code{[numeric] (optional)} Computed numbers (variable ranges) 
+#'    smaller than \code{eps} are treated as zero. 
+#' 
 #' 
 #' @return \code{[numeric]} vector of length \code{max(nrow(x),nrow(y))}.
 #' 
@@ -35,8 +40,10 @@
 #' properties." Biometrics (1971): 857-871.
 #' 
 #' @export
-gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL){
-
+gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8){
+  stopifnot(is.numeric(eps), eps>0)
+  
+  
   if (is.null(pair_x) & is.null(pair_y)){
     pair <- match(names(x),names(y),nomatch = 0L)
   } else if (is.null(pair_x)){
@@ -51,6 +58,6 @@ gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL){
     pair[pair_x] <- pair_y
   }
   factor_pair <- sapply(x,is.factor)
-  .Call(R_gower,x,y,pair, as.integer(factor_pair))
+  .Call(R_gower,x,y,pair, as.integer(factor_pair), as.double(eps))
   
 }
