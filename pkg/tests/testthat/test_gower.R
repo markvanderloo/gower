@@ -5,7 +5,6 @@ test_that("distance between logicals",{
   dL <- expand.grid(c(TRUE,FALSE),c(TRUE,FALSE))
   x = data.frame(x=dL[,1])
   y = data.frame(x=dL[,2])
-  print(gower_dist(x=x,y=y))
   expect_equal(gower_dist(x = x,y = y),c(0,1,1,NaN))
 })
 

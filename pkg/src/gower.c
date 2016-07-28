@@ -76,6 +76,27 @@ static inline void gower_cat(int *x, int nx, int *y, int ny
 
 }
 
+static inline void gower_str(SEXP x, int nx, SEXP y, int ny, double *num, double *den){
+  int nt = MAX(nx, ny);
+  double dijk, sijk;
+  int i=0, j=0;
+  double *inum = num,  *iden=den;
+  SEXP xi, yj;
+
+ 
+  for ( int k=0; k<nt; k++, inum++, iden++ ){
+    xi = STRING_ELT(x,i);
+    yj = STRING_ELT(y,j);
+    dijk = (double) !(xi == NA_STRING || yj == NA_STRING);
+    sijk = (dijk==1.0) ? (double) (CHAR(xi) == CHAR(yj)) : 0.0; 
+    *inum += dijk * sijk; 
+    *iden += dijk;
+    i = RECYCLE(i, nx);
+    j = RECYCLE(j, ny);
+  }
+}
+
+
 // comparison of numerical variables, by absolute difference divided by range.
 static inline void gower_num(double *x, int nx, double *y, int ny,double R
     , double *num, double *den)
@@ -288,7 +309,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_){
        , *den = (double *) R_alloc(nt, sizeof(double));
  
   double *iden = den, *inum = num;
-  for ( int j=0; j<nt; j++, *iden++, *inum++){
+  for ( int j=0; j<nt; j++, iden++, inum++){
     *iden = 0.0;
     *inum = 0.0;
   }
@@ -337,6 +358,8 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_){
           }
         } 
         break;
+      case STRSXP :
+        gower_str(VECTOR_ELT(x,j),nrow_x,VECTOR_ELT(y,pair[j]),nrow_y, num, den);
     } // end switch
   } // end for
 
