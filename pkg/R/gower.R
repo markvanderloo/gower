@@ -35,6 +35,8 @@
 #' @return
 #'   A \code{numeric} vector of length \code{max(nrow(x),nrow(y))}.
 #' 
+#' @seealso \code{\link{gower_topn}}
+#' 
 #' @references 
 #' Gower, John C. "A general coefficient of similarity and some of its 
 #' properties." Biometrics (1971): 857-871.

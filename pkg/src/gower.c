@@ -34,24 +34,48 @@
 // determine when something is numerically zero.
 static double EPS = 1e-8;
 
+// recycling in parallel region.
+static inline int recycle(int i, int nthreads, int ni){
+  i += nthreads;
+  if ( i >= ni )
+    i = (nthreads < ni) ? (i - ni) : (i % ni);
+  return i;
+}
+
+
+
 // presence or absence of a character. x and y are 0 (FALSE) or 1 (TRUE)
 static inline void gower_logi(int *x, int nx, int *y, int ny
    , double *num, double *den)
 {
-  int nt = MAX(nx,ny);
-  double dijk, sijk;
-  int i = 0, j = 0;
-  double *inum = num,  *iden=den;
 
-  for ( int k = 0; k < nt; k++, inum++, iden++){
-    dijk = (double) ((x[i] | y[j]) & !((x[i] == NA_INTEGER) | (y[j] == NA_INTEGER)));
-    sijk = (dijk == 1.0) ? (double) (x[i] * y[j]) : 0.0;
-    *inum += dijk * sijk; 
-    *iden += dijk;
-    i = RECYCLE(i, nx);
-    j = RECYCLE(j, ny);
-  }
-  
+  #pragma omp parallel
+  {
+    int nt = MAX(nx,ny);
+    double dijk, sijk;
+    int i = 0, j = 0;
+    double *inum = num,  *iden=den;
+    
+    int ID = 0, num_threads=1;
+    #ifdef _OPENMP
+    ID = omp_get_thread_num();
+    num_threads = omp_get_num_threads();
+    i = recycle(ID-num_threads, num_threads, nx);
+    j = recycle(ID-num_threads, num_threads, ny);
+    inum += ID;
+    iden += ID;
+    #endif
+    
+
+    for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
+      dijk = (double) ((x[i] | y[j]) & !((x[i] == NA_INTEGER) | (y[j] == NA_INTEGER)));
+      sijk = (dijk == 1.0) ? (double) (x[i] * y[j]) : 0.0;
+      *inum += dijk * sijk; 
+      *iden += dijk;
+      i = recycle(i, num_threads, nx);
+      j = recycle(j, num_threads, ny);
+    }
+  } // end parallel region.
 }
 
 // equality of categorical variables, encoded as x, y in {1,2,...,N}.
@@ -59,40 +83,66 @@ static inline void gower_cat(int *x, int nx, int *y, int ny
   , double *num, double *den)
 {
 
-  int nt = MAX(nx, ny);
-  double dijk, sijk;
-  int i=0, j=0;
-  double *inum = num,  *iden=den;
+  #pragma omp parallel
+  {
+    int nt = MAX(nx,ny);
+    double dijk, sijk;
+    int i = 0, j = 0;
+    double *inum = num,  *iden=den;
+    
+    int ID = 0, num_threads=1;
+    #ifdef _OPENMP
+    ID = omp_get_thread_num();
+    num_threads = omp_get_num_threads();
+    i = recycle(ID-num_threads, num_threads, nx);
+    j = recycle(ID-num_threads, num_threads, ny);
+    inum += ID;
+    iden += ID;
+    #endif
 
-  for ( int k=0; k<nt; k++, inum++, iden++ ){
-    dijk = (double) !(x[i] == NA_INTEGER || y[j] == NA_INTEGER);
-    sijk = (dijk==1.0) ? (double) (x[i] == y[j]) : 0.0; 
-    *inum += dijk * sijk; 
-    *iden += dijk;
-    i = RECYCLE(i, nx);
-    j = RECYCLE(j, ny);
-  }
+    for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
+      dijk = (double) !(x[i] == NA_INTEGER || y[j] == NA_INTEGER);
+      sijk = (dijk==1.0) ? (double) (x[i] == y[j]) : 0.0; 
+      *inum += dijk * sijk; 
+      *iden += dijk;
+      i = recycle(i, num_threads, nx);
+      j = recycle(j, num_threads, ny);
+    }
+  } // end parallel region.
 
 }
 
+// strings. Treated as categories.
 static inline void gower_str(SEXP x, int nx, SEXP y, int ny, double *num, double *den){
-  int nt = MAX(nx, ny);
-  double dijk, sijk;
-  int i=0, j=0;
-  double *inum = num,  *iden=den;
-  SEXP xi, yj;
+  #pragma omp parallel
+  {
+    int nt = MAX(nx, ny);
+    double dijk, sijk;
+    int i=0, j=0;
+    double *inum = num,  *iden=den;
+    SEXP xi, yj;
 
- 
-  for ( int k=0; k<nt; k++, inum++, iden++ ){
-    xi = STRING_ELT(x,i);
-    yj = STRING_ELT(y,j);
-    dijk = (double) !(xi == NA_STRING || yj == NA_STRING);
-    sijk = (dijk==1.0) ? (double) (CHAR(xi) == CHAR(yj)) : 0.0; 
-    *inum += dijk * sijk; 
-    *iden += dijk;
-    i = RECYCLE(i, nx);
-    j = RECYCLE(j, ny);
-  }
+    int ID = 0, num_threads=1;
+    #ifdef _OPENMP
+    ID = omp_get_thread_num();
+    num_threads = omp_get_num_threads();
+    i = recycle(ID-num_threads, num_threads, nx);
+    j = recycle(ID-num_threads, num_threads, ny);
+    inum += ID;
+    iden += ID;
+    #endif
+   
+    for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
+      xi = STRING_ELT(x,i);
+      yj = STRING_ELT(y,j);
+      dijk = (double) !(xi == NA_STRING || yj == NA_STRING);
+      sijk = (dijk==1.0) ? (double) (CHAR(xi) == CHAR(yj)) : 0.0; 
+      *inum += dijk * sijk; 
+      *iden += dijk;
+      i = recycle(i, num_threads, nx);
+      j = recycle(j, num_threads, ny);
+    }
+  } // end of parallel region 
 }
 
 
@@ -100,72 +150,112 @@ static inline void gower_str(SEXP x, int nx, SEXP y, int ny, double *num, double
 static inline void gower_num(double *x, int nx, double *y, int ny,double R
     , double *num, double *den)
 {
-  int nt = MAX(nx, ny);
-  double dijk, sijk;
-  int i=0, j=0;
-  double *inum = num,  *iden=den;
-
   if ( !isfinite(R) || R < EPS ){
     warning("skipping variable with zero or non-finite range\n");
     return;
-  }
+  } 
+  #pragma omp parallel
+  {
+    int nt = MAX(nx,ny);
+    double dijk, sijk;
+    int i = 0, j = 0;
+    double *inum = num,  *iden=den;
+    
+    int ID = 0, num_threads=1;
+    #ifdef _OPENMP
+    ID = omp_get_thread_num();
+    num_threads = omp_get_num_threads();
+    i = recycle(ID-num_threads, num_threads, nx);
+    j = recycle(ID-num_threads, num_threads, ny);
+    inum += ID;
+    iden += ID;
+    #endif
 
-  for ( int k=0; k<nt; k++, inum++, iden++ ){
-    dijk = (double) (isfinite(x[i]) & isfinite(y[j]));
-    sijk = (dijk==1.0) ? (1.0-fabs(x[i]-y[j])/R) : 0.0;
-    (*inum) += dijk * sijk; 
-    (*iden) += dijk;
 
-    i = RECYCLE(i, nx);
-    j = RECYCLE(j, ny);
-  }
+    for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
+      dijk = (double) (isfinite(x[i]) & isfinite(y[j]));
+      sijk = (dijk==1.0) ? (1.0-fabs(x[i]-y[j])/R) : 0.0;
+      (*inum) += dijk * sijk; 
+      (*iden) += dijk;
+      i = recycle(i, num_threads, nx);
+      j = recycle(j, num_threads, ny);
+    }
+    
+  } // end of parallel region
 }
 
 
 static inline void gower_dbl_int(double *x, int nx, int *y, int ny,double R
     , double *num, double *den)
 {
-  int nt = MAX(nx, ny);
-  double dijk, sijk;
-  int i=0, j=0;
-  double *inum = num,  *iden=den;
 
   if ( !isfinite(R) || R < EPS ){
     warning("skipping variable with zero or non-finite range\n");
     return;
   }
 
-  for ( int k=0; k<nt; k++, inum++, iden++ ){
-    dijk = (double) (isfinite(x[i]) & (y[j] != NA_INTEGER));
-    sijk = (dijk==1.0) ? (1.0-fabs(x[i] - ((double) y[j]) )/R) : 0.0;
-    *inum += dijk * sijk; 
-    *iden += dijk;
-    i = RECYCLE(i, nx);
-    j = RECYCLE(j, ny);
-  }
+  #pragma omp parallel
+  {
+    int nt = MAX(nx, ny);
+    double dijk, sijk;
+    int i=0, j=0;
+    double *inum = num,  *iden=den;
+
+    int ID = 0, num_threads=1;
+    #ifdef _OPENMP
+    ID = omp_get_thread_num();
+    num_threads = omp_get_num_threads();
+    i = recycle(ID-num_threads, num_threads, nx);
+    j = recycle(ID-num_threads, num_threads, ny);
+    inum += ID;
+    iden += ID;
+    #endif
+   
+    for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
+      dijk = (double) (isfinite(x[i]) & (y[j] != NA_INTEGER));
+      sijk = (dijk==1.0) ? (1.0-fabs(x[i] - ((double) y[j]) )/R) : 0.0;
+      *inum += dijk * sijk; 
+      *iden += dijk;
+      i = recycle(i, num_threads, nx);
+      j = recycle(j, num_threads, ny);
+    }
+  } // end of parallel region
 }
 
 static inline void gower_int(int *x, int nx, int *y, int ny, double R
     , double *num, double *den)
 {
-  int nt = MAX(nx, ny);
-  double dijk, sijk;
-  int i=0, j=0;
-  double *inum = num,  *iden=den;
-
   if ( !isfinite(R) || R == 0 ){
     warning("skipping variable with zero or non-finite range\n");
     return;
   }
+  #pragma omp parallel
+  {
+    int nt = MAX(nx, ny);
+    double dijk, sijk;
+    int i=0, j=0;
+    double *inum = num,  *iden=den;
 
-  for ( int k=0; k<nt; k++, inum++, iden++ ){
-    dijk = (double) ( (x[i] !=NA_INTEGER) & (y[j] != NA_INTEGER));
-    sijk = (dijk==1.0) ? (1.0-fabs( ((double)x[i]) - ((double)y[j]) )/R) : 0.0;
-    *inum += dijk * sijk; 
-    *iden += dijk;
-    i = RECYCLE(i, nx);
-    j = RECYCLE(j, ny);
-  }
+    int ID = 0, num_threads=1;
+    #ifdef _OPENMP
+    ID = omp_get_thread_num();
+    num_threads = omp_get_num_threads();
+    i = recycle(ID-num_threads, num_threads, nx);
+    j = recycle(ID-num_threads, num_threads, ny);
+    inum += ID;
+    iden += ID;
+    #endif
+
+
+    for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
+      dijk = (double) ( (x[i] !=NA_INTEGER) & (y[j] != NA_INTEGER));
+      sijk = (dijk==1.0) ? (1.0-fabs( ((double)x[i]) - ((double)y[j]) )/R) : 0.0;
+      *inum += dijk * sijk; 
+      *iden += dijk;
+      i = recycle(i, num_threads, nx);
+      j = recycle(j, num_threads, ny);
+    }
+  } // end of parallel region
 }
 
 // range computations
