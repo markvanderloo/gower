@@ -59,13 +59,21 @@ test_that("exceptions",{
     , eps=0.2
   ))
 
-  # should not be a warning, but the case with one columns NA is interesting.  
-  # expect_warning(gower_dist(
-  #   x = data.frame(x=rep(NA_integer_,3))
-  #   , y = data.frame(x=c(NaN,-Inf,Inf))
-  #   , eps=0.2
-  # ))
-  
+})
 
 
-  })
+context("Top-n")
+
+test_that("gower_topn",{
+  d1 <- iris[1:3,]
+  d2 <- iris[1:7,]
+  L <- gower_topn(d1,d2,n=4)
+  expect_equal(length(L),2)
+  expect_equal(dim(L[[1]]),c(4,3))
+  expect_equal(dim(L[[1]]),dim(L[[2]]))
+  expect_equal(L[[1]][1,],1:3)
+  expect_equal(L[[2]][1,],rep(0,3))
+})
+
+
+
