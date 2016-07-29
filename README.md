@@ -10,4 +10,4 @@ Gower's distance for R
 
 ### Reference
 
-Gower (1971) A general coefficient of similarity and some of its properties. _Biometrics_ **27** 857-874
+Gower (1971) A general coefficient of similarity and some of its properties. _Biometrics_ **27** 857-874 [pdf](http://venus.unive.it/romanaz/modstat_ba/gowdis.pdf)
