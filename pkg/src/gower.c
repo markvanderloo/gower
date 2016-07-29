@@ -33,6 +33,8 @@
 
 // determine when something is numerically zero.
 static double EPS = 1e-8;
+// set max nr of threads to use
+static int NTHREAD = 1L;
 
 // recycling in parallel region.
 static inline int recycle(int i, int nthreads, int ni){
@@ -43,13 +45,26 @@ static inline int recycle(int i, int nthreads, int ni){
 }
 
 
+SEXP R_get_max_threads(){
+  SEXP out = allocVector(INTSXP, 1L);
+  PROTECT(out);
+  INTEGER(out)[0] = 1L;
+  #ifdef _OPENMP
+  INTEGER(out)[0] = omp_get_max_threads();
+  #endif
+  UNPROTECT(1);
+  return out;
+}
+
+
+
 
 // presence or absence of a character. x and y are 0 (FALSE) or 1 (TRUE)
 static inline void gower_logi(int *x, int nx, int *y, int ny
    , double *num, double *den)
 {
 
-  #pragma omp parallel
+  # pragma omp parallel num_threads(NTHREAD) 
   {
     int nt = MAX(nx,ny);
     double dijk, sijk;
@@ -83,7 +98,7 @@ static inline void gower_cat(int *x, int nx, int *y, int ny
   , double *num, double *den)
 {
 
-  #pragma omp parallel
+  # pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx,ny);
     double dijk, sijk;
@@ -114,7 +129,7 @@ static inline void gower_cat(int *x, int nx, int *y, int ny
 
 // strings. Treated as categories.
 static inline void gower_str(SEXP x, int nx, SEXP y, int ny, double *num, double *den){
-  #pragma omp parallel
+  # pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx, ny);
     double dijk, sijk;
@@ -154,7 +169,7 @@ static inline void gower_num(double *x, int nx, double *y, int ny,double R
     warning("skipping variable with zero or non-finite range\n");
     return;
   } 
-  #pragma omp parallel
+  # pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx,ny);
     double dijk, sijk;
@@ -194,7 +209,7 @@ static inline void gower_dbl_int(double *x, int nx, int *y, int ny,double R
     return;
   }
 
-  #pragma omp parallel
+  # pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx, ny);
     double dijk, sijk;
@@ -229,7 +244,7 @@ static inline void gower_int(int *x, int nx, int *y, int ny, double R
     warning("skipping variable with zero or non-finite range\n");
     return;
   }
-  #pragma omp parallel
+  # pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx, ny);
     double dijk, sijk;
@@ -372,11 +387,13 @@ static double get_xy_range(SEXP x, SEXP y){
 }
 
 
-SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_){
+SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_, SEXP nthread_){
 
   int *pair = INTEGER(pair_)
     , *factor_pair = INTEGER(factor_pair_);
   int npair = length(pair_);
+
+  NTHREAD = INTEGER(nthread_)[0];
 
   // set global epsilon
   EPS = REAL(eps_)[0];
@@ -536,7 +553,7 @@ Rprintf("\n");
 }
 */
 
-SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP pair_, SEXP factor_pair_, SEXP n_, SEXP eps_){
+SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP pair_, SEXP factor_pair_, SEXP n_, SEXP eps_, SEXP nthread_){
 
   int n = INTEGER(n_)[0];
   int ny = length(VECTOR_ELT(y_,0));
@@ -578,7 +595,7 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP pair_, SEXP factor_pair_, SEXP n_, SEXP
     // create a list to feed to R_gower
     copyrec(temprec_, x_, i);
     // compute distances
-    d = R_gower(temprec_, y_, pair_, factor_pair_, eps_);
+    d = R_gower(temprec_, y_, pair_, factor_pair_, eps_, nthread_);
     // push down distances & indices.
     dist = REAL(d);
     for ( int k=0; k < ny; k++){

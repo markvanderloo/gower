@@ -30,6 +30,10 @@
 #'    See Details below.
 #' @param eps = \code{[numeric] (optional)} Computed numbers (variable ranges) 
 #'    smaller than \code{eps} are treated as zero. 
+#' @param nthreads Number of threads to use for paralellization. By default,
+#'    for a dual-core machine, 2 threads are used. For any other machine 
+#'    n-1 cores are used so your machine doesn't freeze during a big computation. 
+#'    The maximum nr of threads are determined from \code{omp::get_max_threads}.
 #' 
 #' 
 #' @return
@@ -42,8 +46,9 @@
 #' properties." Biometrics (1971): 857-871.
 #' 
 #' @export
-gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8){
-  gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y,n=NULL,eps=eps)
+gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8
+                       ,nthread=getOption("gd_num_thread")){
+  gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y,n=NULL,eps=eps,nthread=nthread)
 }
 
 #' Find the top-n matches
@@ -70,13 +75,14 @@ gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8){
 #' 
 #' 
 #' @export
-gower_topn <- function(x, y, pair_x=NULL, pair_y = NULL, n=5, eps=1e-8){
-  gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y,n=n,eps=eps)
+gower_topn <- function(x, y, pair_x=NULL, pair_y = NULL, n=5, eps=1e-8
+                       , nthread=getOption("gd_num_thread")){
+  gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y,n=n,eps=eps,nthread)
 }
 
 
 
-gower_work <- function(x, y, pair_x=NULL, pair_y = NULL, n=NULL, eps=1e-8){
+gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
   stopifnot(is.numeric(eps), eps>0)
   
   
@@ -95,12 +101,13 @@ gower_work <- function(x, y, pair_x=NULL, pair_y = NULL, n=NULL, eps=1e-8){
   }
   factor_pair <- as.integer(sapply(x,is.factor))
   eps <- as.double(eps)
+  nthread <- as.integer(nthread)
   pair <- as.integer(pair-1L)
   if (is.null(n)){
-    .Call(R_gower, x, y , pair, factor_pair, eps)
+    .Call(R_gower, x, y , pair, factor_pair, eps, nthread)
     
   } else {
-    L <- .Call(R_gower_topn, x, y, pair, factor_pair, as.integer(n), eps)
+    L <- .Call(R_gower_topn, x, y, pair, factor_pair, as.integer(n), eps, nthread)
     names(L) <- c("index","distance")
     dim(L$index) <- c(n,nrow(x))
     dim(L$distance) <- dim(L$index)
