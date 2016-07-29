@@ -294,7 +294,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_){
 
 
   // from R [base-1] to C [base-0] index for columns.
-  for ( int j=0; j<npair; j++) pair[j]--;
+  //for ( int j=0; j<npair; j++) pair[j]--;
 
   int nrow_x = length(VECTOR_ELT(x, 0L))
     , nrow_y = length(VECTOR_ELT(y, 0L));
@@ -374,6 +374,139 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_){
   return out;
 
 }
+
+
+
+/* Push a distance down the list while keeping things sorted.
+ * 
+ *
+ */
+static inline void push(double x, int ind, double *topn, int *index, int n){
+  
+  for ( int i=0; i<n; i++){
+    if ( (x < topn[i]) | ((x == topn[i]) & (i < n-1))){
+      // new entry encountered, bubble to keep sorted.
+      if ( topn[i] == R_PosInf ){ // No entry yet, overwrite.
+        topn[i] = x;
+        index[i] = ind;
+        break; // out of main loop
+      } else { // Bubble up to insert new entry
+        topn[n-1] = topn[n-2];
+        index[n-1] = index[n-2];
+        for ( int j=n-2; j>i; j-- ){
+          topn[j] = topn[j-1];
+          index[j] = index[j-1];
+        }
+        topn[i] = x;
+        index[i] = ind;
+        break; // out of main loop
+      }
+    }
+  }
+
+} 
+
+/* For testing purposes
+SEXP R_pushdown(SEXP entry_, SEXP index_, SEXP values_, SEXP indices_){
+  double  entry   = REAL(entry_)[0];
+  int     index   = INTEGER(index_)[0];
+  double *values  = REAL(values_);
+  int    *indices = INTEGER(indices_);
+  int n = length(values_);
+  
+  push(entry, index, values, indices, n);
+  return R_NilValue;
+}
+*/
+
+
+
+static inline void copyrec(SEXP into, SEXP from, int i){
+  int ncol = length(into);
+
+  SEXP col_from, col_into;
+
+  for ( int j = 0; j < ncol; j++){
+    col_from = VECTOR_ELT(from,j);
+    col_into = VECTOR_ELT(into,j);
+    switch(TYPEOF(col_from)){
+      case LGLSXP  : { INTEGER(col_into)[0] = INTEGER(col_from)[i]; break;}
+      case INTSXP  : { INTEGER(col_into)[0] = INTEGER(col_from)[i]; break;}
+      case REALSXP : { REAL(col_into)[0] = REAL(col_from)[i]; break;}
+      case STRSXP  : { SET_STRING_ELT(col_from, 0, STRING_ELT(col_from,i)); break;}
+    }
+  }
+}
+
+/* for testing purposes only
+void prvec(SEXP x){
+  for (int i=0; i<length(x); i++){
+    Rprintf("%8.4f",REAL(x)[i]);
+  }
+Rprintf("\n");
+}
+*/
+
+SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP pair_, SEXP factor_pair_, SEXP n_, SEXP eps_){
+
+  int n = INTEGER(n_)[0];
+  int ny = length(VECTOR_ELT(y_,0));
+  int nrowx = length(VECTOR_ELT(x_,0)); 
+  int nout = nrowx * n;
+
+  // setup output list
+  SEXP out = allocVector(VECSXP, 2L);
+  PROTECT(out);
+  SET_VECTOR_ELT(out, 0L, allocVector(INTSXP, nout));
+  SET_VECTOR_ELT(out, 1L, allocVector(REALSXP, nout));
+
+  // temporary record to pass to R_gower
+  SEXP temprec_ = allocVector(VECSXP, length(x_));
+  PROTECT(temprec_); 
+ 
+  // initialize output distance.
+  double *vv=REAL(VECTOR_ELT(out,1L));
+  for(int i=0; i<nout; i++,vv++){
+    *vv = R_PosInf;
+  }
+
+// start parallel region
+  // pointers to output
+  int *index = INTEGER(VECTOR_ELT(out, 0L));
+  double *value = REAL(VECTOR_ELT(out, 1L));
+
+  // initialize spots in temporary record
+  for ( int j=0; j<length(x_); j++){
+    SET_VECTOR_ELT(temprec_, j, allocVector(TYPEOF(VECTOR_ELT(x_,j)), 1L));
+  }
+
+  SEXP d;
+  double *dist; 
+  // loop over records in x_
+  for ( int i=0; i < nrowx; i++){
+    // create a list to feed to R_gower
+    copyrec(temprec_, x_, i);
+    // compute distances
+    d = R_gower(temprec_, y_, pair_, factor_pair_, eps_);
+    // push down distances & indices.
+    dist = REAL(d);
+prvec(d);
+    for ( int k=0; k < ny; k++){
+      push(dist[k], k+1, value, index, n);
+    }
+    value += n;
+    index += n;
+  }
+
+// end parallel region
+
+  // return list with indices and distances.
+  UNPROTECT(2);
+  return(out);
+}
+
+
+
 
 
 

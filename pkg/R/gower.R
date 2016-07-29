@@ -58,6 +58,6 @@ gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8){
     pair[pair_x] <- pair_y
   }
   factor_pair <- sapply(x,is.factor)
-  .Call(R_gower,x,y,pair, as.integer(factor_pair), as.double(eps))
+  .Call(R_gower,x,y,pair-1L, as.integer(factor_pair), as.double(eps))
   
 }
