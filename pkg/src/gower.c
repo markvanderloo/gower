@@ -23,7 +23,6 @@
 #include <omp.h>
 #endif
 
-#define USE_R_INTERNALS
 #include <math.h>
 #include <R.h>
 #include <Rdefines.h>
@@ -473,33 +472,39 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP pair_, SEXP factor_pair_, SEXP n_, SEXP
   }
 
 // start parallel region
-  // pointers to output
-  int *index = INTEGER(VECTOR_ELT(out, 0L));
-  double *value = REAL(VECTOR_ELT(out, 1L));
 
-  // initialize spots in temporary record
-  for ( int j=0; j<length(x_); j++){
-    SET_VECTOR_ELT(temprec_, j, allocVector(TYPEOF(VECTOR_ELT(x_,j)), 1L));
-  }
+  # pragma omp parallel
+  {
+    int thread_num = omp_get_thread_num();
+    int n_threads = omp_get_num_threads();
 
-  SEXP d;
-  double *dist; 
-  // loop over records in x_
-  for ( int i=0; i < nrowx; i++){
-    // create a list to feed to R_gower
-    copyrec(temprec_, x_, i);
-    // compute distances
-    d = R_gower(temprec_, y_, pair_, factor_pair_, eps_);
-    // push down distances & indices.
-    dist = REAL(d);
-    for ( int k=0; k < ny; k++){
-      push(dist[k], k+1, value, index, n);
+    // pointers to output
+    int *index = INTEGER(VECTOR_ELT(out, 0L)) + thread_num;
+    double *value = REAL(VECTOR_ELT(out, 1L)) + thread_num;
+
+    // initialize spots in temporary record
+    for ( int j=0; j<length(x_); j++){
+      SET_VECTOR_ELT(temprec_, j, allocVector(TYPEOF(VECTOR_ELT(x_,j)), 1L));
     }
-    value += n;
-    index += n;
-  }
 
-// end parallel region
+    SEXP d;
+    double *dist; 
+    // loop over records in x_
+    for ( int i=thread_num; i < nrowx; i += n_threads){
+      // create a list to feed to R_gower
+      copyrec(temprec_, x_, i);
+      // compute distances
+      d = R_gower(temprec_, y_, pair_, factor_pair_, eps_);
+      // push down distances & indices.
+      dist = REAL(d);
+      for ( int k=0; k < ny; k++){
+        push(dist[k], k+1, value, index, n);
+      }
+      value += n*(n_threads + 1);
+      index += n*(n_threads + 1);
+    }
+
+  } // end parallel region
 
   // return list with indices and distances.
   UNPROTECT(2);
