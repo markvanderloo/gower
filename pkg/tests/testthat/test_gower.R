@@ -5,7 +5,6 @@ test_that("distance between logicals",{
   dL <- expand.grid(c(TRUE,FALSE),c(TRUE,FALSE))
   x = data.frame(x=dL[,1])
   y = data.frame(x=dL[,2])
-  print(gower_dist(x=x,y=y))
   expect_equal(gower_dist(x = x,y = y),c(0,1,1,NaN))
 })
 
@@ -35,6 +34,32 @@ test_that("multivariate dataset",{
   expect_equal(gower_dist(dM1,dM2), c(0,3/4,3/4,0))
 })
 
+test_that("recycling",{
+  expect_equal(length(gower_dist(x=iris[1,],y=iris)), nrow(iris))
+  expect_equal(length(gower_dist(x=iris,y=iris[1,])), nrow(iris))
+  expect_equal(length(gower_dist(x=iris[1:3,],y=iris)), nrow(iris))
+  expect_equal(length(gower_dist(x=iris,y=iris[1:3,])), nrow(iris))
+})
 
 
+test_that("exceptions",{
+  expect_warning(gower_dist(
+    x = data.frame(x=c(1.2,1.2,1.2))
+    , y = data.frame(x=c(1.2,1.2,1.2))
+  ))
+  expect_warning(gower_dist(
+    x = data.frame(x=c(1.2,1.2,1.2))
+    , y = data.frame(x=c(1.2,1.2,1.3))
+    , eps=0.2
+  ))
 
+  # should not be a warning, but the case with one columns NA is interesting.  
+  # expect_warning(gower_dist(
+  #   x = data.frame(x=rep(NA_integer_,3))
+  #   , y = data.frame(x=c(NaN,-Inf,Inf))
+  #   , eps=0.2
+  # ))
+  
+
+
+  })
