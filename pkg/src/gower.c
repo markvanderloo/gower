@@ -467,7 +467,7 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP pair_, SEXP factor_pair_, SEXP n_, SEXP
   // initialize output distance.
   double *vv=REAL(VECTOR_ELT(out,1L));
   int *ii=INTEGER(VECTOR_ELT(out,0L));
-  for(int i=0; i<nout; i++,vv++){
+  for(int i=0; i<nout; i++,vv++,ii++){
     *vv = R_PosInf;
     *ii = 0L;
   }

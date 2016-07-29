@@ -73,6 +73,12 @@ test_that("gower_topn",{
   expect_equal(dim(L[[1]]),dim(L[[2]]))
   expect_equal(L[[1]][1,],1:3)
   expect_equal(L[[2]][1,],rep(0,3))
+  
+  # case where n exceeds nr of records in the lookup table.
+  L <- gower_topn(d1,d2,n=8)
+  expect_equal(L[[1]][8,],rep(0,3))
+  expect_equal(L[[2]][8,],rep(Inf,3))
+  
 })
 
 
