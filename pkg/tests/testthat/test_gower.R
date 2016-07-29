@@ -19,6 +19,12 @@ test_that("distance between numerical variables",{
   expect_equal(gower_dist(data.frame(x=dN[,1]),data.frame(x=dN[,2])),c(0,1/3,1/3,1/3))
 })
 
+test_that("distance between character variables",{
+  dC <- data.frame(x=letters[1:3],y=letters[3:1],stringsAsFactors=FALSE)
+  expect_equal(gower_dist( data.frame(x=dC[,1]), data.frame(x=dC[,2])),c(1,0,1))
+
+})
+
 test_that("multivariate dataset",{
   bands <- c("Grand Magus","Skull Fist")
   dL <- expand.grid(c(TRUE,FALSE),c(TRUE,FALSE))
