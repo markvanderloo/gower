@@ -4,6 +4,6 @@
 #' 
 #' @name gower-package
 #' @docType package
-#' @useDynLib gower R_gower
+#' @useDynLib gower R_gower R_gower_topn
 #' 
 {}

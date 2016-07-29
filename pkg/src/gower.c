@@ -466,8 +466,10 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP pair_, SEXP factor_pair_, SEXP n_, SEXP
  
   // initialize output distance.
   double *vv=REAL(VECTOR_ELT(out,1L));
+  int *ii=INTEGER(VECTOR_ELT(out,0L));
   for(int i=0; i<nout; i++,vv++){
     *vv = R_PosInf;
+    *ii = 0L;
   }
 
 // start parallel region
@@ -490,7 +492,6 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP pair_, SEXP factor_pair_, SEXP n_, SEXP
     d = R_gower(temprec_, y_, pair_, factor_pair_, eps_);
     // push down distances & indices.
     dist = REAL(d);
-prvec(d);
     for ( int k=0; k < ny; k++){
       push(dist[k], k+1, value, index, n);
     }
