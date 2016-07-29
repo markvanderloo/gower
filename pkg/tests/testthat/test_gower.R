@@ -21,7 +21,9 @@ test_that("distance between numerical variables",{
 
 test_that("distance between character variables",{
   dC <- data.frame(x=letters[1:3],y=letters[3:1],stringsAsFactors=FALSE)
-  expect_equal(gower_dist( data.frame(x=dC[,1]), data.frame(x=dC[,2])),c(1,0,1))
+  expect_equal(gower_dist( 
+    data.frame(x=dC[,1],stringsAsFactors=FALSE)
+    , data.frame(x=dC[,2],stringsAsFactors=FALSE)),c(1,0,1))
 
 })
 
@@ -59,6 +61,7 @@ test_that("exceptions",{
     , eps=0.2
   ))
 
+  expect_warning(gower_dist(data.frame(x=rep(1,100)), data.frame(x=1,100)))
 })
 
 
@@ -80,6 +83,21 @@ test_that("gower_topn",{
   expect_equal(L[[2]][8,],rep(Inf,3))
   
 })
+
+
+test_that("just to get code-coverage right",{
+  dat1 <- data.frame(
+    x = as.factor(sample(letters,2000,replace=TRUE))
+    ,y = sample(LETTERS,2000,replace=TRUE)
+    ,z = as.integer(1:2000)
+    ,w = sample(c(TRUE,FALSE),2000,replace=TRUE)
+    , stringsAsFactors=FALSE
+  )
+  i <- sample(2000)
+  dat2 <- dat1[i,]
+  gower_dist(dat1,dat2)
+})
+
 
 
 
