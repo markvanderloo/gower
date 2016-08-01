@@ -10,5 +10,5 @@
 
 
 .onLoad <- function(libname, pkgname){
-  options(gd_num_thread = .Call("R_get_max_threads"))
+  options(gd_num_thread = parallel::detectCores())
 }

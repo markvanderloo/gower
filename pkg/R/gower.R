@@ -30,7 +30,7 @@
 #'    See Details below.
 #' @param eps = \code{[numeric] (optional)} Computed numbers (variable ranges) 
 #'    smaller than \code{eps} are treated as zero. 
-#' @param nthreads Number of threads to use for paralellization. By default,
+#' @param nthread Number of threads to use for parallelization. By default,
 #'    for a dual-core machine, 2 threads are used. For any other machine 
 #'    n-1 cores are used so your machine doesn't freeze during a big computation. 
 #'    The maximum nr of threads are determined from \code{omp::get_max_threads}.
