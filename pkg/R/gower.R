@@ -99,15 +99,22 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
     pair <- numeric(ncol(x))
     pair[pair_x] <- pair_y
   }
+  
+  ranges <- numeric(length(pair))
+  for ( i in seq_along(pair)){
+    if (pair[i] == 0 ) next
+    ranges[i] <- .Call("R_get_xy_range",x[[i]],y[[pair[i]]])
+  }
+  
   factor_pair <- as.integer(sapply(x,is.factor))
   eps <- as.double(eps)
   nthread <- as.integer(nthread)
   pair <- as.integer(pair-1L)
   if (is.null(n)){
-    .Call(R_gower, x, y , pair, factor_pair, eps, nthread)
+    .Call(R_gower, x, y , ranges, pair, factor_pair, eps, nthread)
     
   } else {
-    L <- .Call(R_gower_topn, x, y, pair, factor_pair, as.integer(n), eps, nthread)
+    L <- .Call(R_gower_topn, x, y, ranges, pair, factor_pair, as.integer(n), eps, nthread)
     names(L) <- c("index","distance")
     dim(L$index) <- c(n,nrow(x))
     dim(L$distance) <- dim(L$index)

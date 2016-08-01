@@ -386,12 +386,24 @@ static double get_xy_range(SEXP x, SEXP y){
 
 }
 
+SEXP R_get_xy_range(SEXP x_, SEXP y_){
+  SEXP out = allocVector(REALSXP,1L);
+  PROTECT(out);
+  REAL(out)[0] = get_xy_range(x_, y_);
+  UNPROTECT(1);
+  return out;
+}
 
-SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_, SEXP nthread_){
+
+
+SEXP R_gower(SEXP x, SEXP y, SEXP ranges_, SEXP pair_
+    , SEXP factor_pair_, SEXP eps_, SEXP nthread_){
 
   int *pair = INTEGER(pair_)
     , *factor_pair = INTEGER(factor_pair_);
   int npair = length(pair_);
+
+  double *ranges = REAL(ranges_);
 
   NTHREAD = INTEGER(nthread_)[0];
 
@@ -412,7 +424,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_, SEXP nthr
 
   // numerator & denominator. 
   double *num = REAL(out)
-       , *den = (double *) R_alloc(nt, sizeof(double));
+       , *den = (double *) R_alloc(nt , sizeof(double));
  
   double *iden = den, *inum = num;
   for ( int j=0; j<nt; j++, iden++, inum++){
@@ -433,7 +445,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_, SEXP nthr
             ,num, den);
         break;
       case REALSXP : 
-        R = get_xy_range(VECTOR_ELT(x,j), VECTOR_ELT(y,pair[j]));
+        R = ranges[j];
         if (TYPEOF(VECTOR_ELT(y,pair[j])) == REALSXP){
           gower_num(REAL(VECTOR_ELT(x,j)), nrow_x
                 , REAL(VECTOR_ELT(y,pair[j])), nrow_y
@@ -447,7 +459,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_, SEXP nthr
       case INTSXP : 
         type_y = TYPEOF(VECTOR_ELT(y,pair[j]));
         if ( type_y == REALSXP ){ // treat as numeric
-          R = get_xy_range(VECTOR_ELT(x,j), VECTOR_ELT(y,pair[j]));
+          R = ranges[j];
           gower_dbl_int(REAL(VECTOR_ELT(y,pair[j])), nrow_y
                 , INTEGER(VECTOR_ELT(x, j)), nrow_x
                 , R, num, den);
@@ -457,7 +469,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_, SEXP nthr
                     , INTEGER(VECTOR_ELT(y,pair[j])), nrow_y
                     , num, den);
           } else { // treat as integers
-            R = get_xy_range(VECTOR_ELT(x,j), VECTOR_ELT(y,pair[j]));
+            R = ranges[j];
             gower_int(INTEGER(VECTOR_ELT(x,j)), nrow_x
                     , INTEGER(VECTOR_ELT(y,pair[j])), nrow_y
                     , R, num, den);
@@ -475,6 +487,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP pair_, SEXP factor_pair_, SEXP eps_, SEXP nthr
     (*inum) = (*iden == 0.0) ? R_NaN : (1.0 - (*inum)/(*iden));
   }
 
+  //free(den);
   UNPROTECT(1);
   
   return out;
@@ -553,7 +566,8 @@ Rprintf("\n");
 }
 */
 
-SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP pair_, SEXP factor_pair_, SEXP n_, SEXP eps_, SEXP nthread_){
+SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP ranges_, SEXP pair_
+    , SEXP factor_pair_, SEXP n_, SEXP eps_, SEXP nthread_){
 
   int n = INTEGER(n_)[0];
   int ny = length(VECTOR_ELT(y_,0));
@@ -595,7 +609,7 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP pair_, SEXP factor_pair_, SEXP n_, SEXP
     // create a list to feed to R_gower
     copyrec(temprec_, x_, i);
     // compute distances
-    d = R_gower(temprec_, y_, pair_, factor_pair_, eps_, nthread_);
+    d = R_gower(temprec_, y_, ranges_, pair_, factor_pair_, eps_, nthread_);
     // push down distances & indices.
     dist = REAL(d);
     for ( int k=0; k < ny; k++){
