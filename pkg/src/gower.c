@@ -395,9 +395,8 @@ SEXP R_get_xy_range(SEXP x_, SEXP y_){
 }
 
 
-
-SEXP R_gower(SEXP x, SEXP y, SEXP ranges_, SEXP pair_
-    , SEXP factor_pair_, SEXP eps_, SEXP nthread_){
+static void do_gower(SEXP x, SEXP y, SEXP ranges_, SEXP pair_
+  , SEXP factor_pair_, SEXP eps_, SEXP nthread_, double *work, SEXP out_){
 
   int *pair = INTEGER(pair_)
     , *factor_pair = INTEGER(factor_pair_);
@@ -418,14 +417,11 @@ SEXP R_gower(SEXP x, SEXP y, SEXP ranges_, SEXP pair_
     , nrow_y = length(VECTOR_ELT(y, 0L));
   int nt = MAX(nrow_x, nrow_y);
 
-  // output
-  SEXP out;
-  out = PROTECT(allocVector(REALSXP, nt));
-
   // numerator & denominator. 
-  double *num = REAL(out)
-       , *den = (double *) R_alloc(nt , sizeof(double));
- 
+  double *num = REAL(out_)
+       , *den = work;
+
+  // initialize
   double *iden = den, *inum = num;
   for ( int j=0; j<nt; j++, iden++, inum++){
     *iden = 0.0;
@@ -487,18 +483,41 @@ SEXP R_gower(SEXP x, SEXP y, SEXP ranges_, SEXP pair_
     (*inum) = (*iden == 0.0) ? R_NaN : (1.0 - (*inum)/(*iden));
   }
 
-  //free(den);
+}
+
+
+
+SEXP R_gower(SEXP x, SEXP y, SEXP ranges_, SEXP pair_
+    , SEXP factor_pair_, SEXP eps_, SEXP nthread_){
+
+
+  int nrow_x = length(VECTOR_ELT(x, 0L))
+    , nrow_y = length(VECTOR_ELT(y, 0L));
+  int nt = MAX(nrow_x, nrow_y);
+
+  // Setup space for output.
+  SEXP out_;
+  out_ = PROTECT(allocVector(REALSXP, nt));
+  // Make room for the workhorse
+  double *work = (double *) R_alloc(nt, sizeof(double));
+  // Make the horse work
+  do_gower(x, y, ranges_, pair_, factor_pair_, eps_, nthread_, work, out_);
+
+  // cleanup and return
   UNPROTECT(1);
-  
-  return out;
+  return(out_);
 
 }
 
 
 
-/* Push a distance down the list while keeping things sorted.
+/* Push a value and an index down the list while keeping things sorted.
  * 
- *
+ * x    : value to push down
+ * ind  : index value
+ * topn : list, initialized with 1./0.
+ * index: list, initialized with 0L
+ * n    : nr of values in the list.
  */
 static inline void push(double x, int ind, double *topn, int *index, int n){
   
@@ -573,6 +592,7 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP ranges_, SEXP pair_
   int ny = length(VECTOR_ELT(y_,0));
   int nrowx = length(VECTOR_ELT(x_,0)); 
   int nout = nrowx * n;
+  int nt = MAX(ny,nrowx);
 
   // setup output list
   SEXP out = allocVector(VECSXP, 2L);
@@ -582,14 +602,21 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP ranges_, SEXP pair_
 
   // temporary record to pass to R_gower
   SEXP temprec_ = allocVector(VECSXP, length(x_));
-  PROTECT(temprec_); 
+  PROTECT(temprec_);
+
+  // Room for do_gower workhorse
+  double *work = (double *) R_alloc(nt, sizeof(double));
  
   // initialize output distance.
   double *vv=REAL(VECTOR_ELT(out,1L));
   int *ii=INTEGER(VECTOR_ELT(out,0L));
-  for(int i=0; i<nout; i++,vv++,ii++){
-    *vv = R_PosInf;
-    *ii = 0L;
+  # pragma omp parallel num_threads(NTHREAD) 
+  { 
+  # pragma omp for
+    for(int i=0; i<nout; i++){
+      vv[i] = R_PosInf;
+      ii[i] = 0L;
+    }
   }
 
 
@@ -602,16 +629,18 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP ranges_, SEXP pair_
     SET_VECTOR_ELT(temprec_, j, allocVector(TYPEOF(VECTOR_ELT(x_,j)), 1L));
   }
 
-  SEXP d;
+  // temporarily stores distance values.
+  SEXP d_ = allocVector(REALSXP,nt);
+  PROTECT(d_);
   double *dist; 
   // loop over records in x_
   for ( int i=0; i < nrowx; i++){
     // create a list to feed to R_gower
     copyrec(temprec_, x_, i);
     // compute distances
-    d = R_gower(temprec_, y_, ranges_, pair_, factor_pair_, eps_, nthread_);
+    do_gower(temprec_, y_, ranges_, pair_, factor_pair_, eps_, nthread_, work, d_);
     // push down distances & indices.
-    dist = REAL(d);
+    dist = REAL(d_);
     for ( int k=0; k < ny; k++){
       push(dist[k], k+1, value, index, n);
     }
@@ -621,7 +650,7 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP ranges_, SEXP pair_
 
 
   // return list with indices and distances.
-  UNPROTECT(2);
+  UNPROTECT(3);
   return(out);
 }
 
