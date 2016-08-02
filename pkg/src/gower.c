@@ -19,6 +19,7 @@
  */
 
 
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -278,13 +279,12 @@ static void get_dbl_range(double *x, int nx, double *min, double *max){
 
   double *ix = x;
 
-  min[0] = x[0];
-  max[0] = x[0];
 
+  double imin=x[0], imax=x[0];
   for ( int i=0; i<nx; i++, ix++ ){
     if (isfinite(*min)) break;
-    *min = *ix; 
-    *max = *ix;
+    imin = *ix; 
+    imax = *ix;
   }
   
   // all non-finite, range not computable.
@@ -292,18 +292,19 @@ static void get_dbl_range(double *x, int nx, double *min, double *max){
     return ;
   }
 
-  ix = x;
 
-  for ( int i=0; i<nx; i++, ix++){
-    if (isfinite(*ix)){
-      if (*ix > *max){
-        *max = *ix;
+  # pragma omp parallel for reduction(min:imin), reduction(max:imax)
+  for ( int i=0; i<nx; i++){
+    if (isfinite(x[i])){
+      if (x[i] > *max){
+        imax = x[i];
       } else if ( *ix < *min ){
-        *min = *ix;
+        imin = x[i];
       }
     }
   }
-
+  *min = imin;
+  *max = imax;
 }
 
 
@@ -325,14 +326,14 @@ static void get_int_range(int *x, int nx, double *min, double *max){
     return ;
   }
 
-  ix = x;
-
-  for ( int i=0; i<nx; i++, ix++){
-    if ( *ix != NA_INTEGER ){
-      if (*ix > imax){
-        imax = *ix;
-      } else if ( *ix < imin ){
-        imin = *ix;
+   
+  # pragma omp parallel for reduction(min:imin), reduction(max:imax)
+  for ( int i=0; i<nx; i++){
+    if ( x[i] != NA_INTEGER ){
+      if (x[i] > imax){
+        imax = x[i];
+      } else if ( x[i] < imin ){
+        imin = x[i];
       }
     }
   }
@@ -612,7 +613,7 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP ranges_, SEXP pair_
   int *ii=INTEGER(VECTOR_ELT(out,0L));
   # pragma omp parallel num_threads(NTHREAD) 
   { 
-  # pragma omp for
+    # pragma omp for schedule(static)
     for(int i=0; i<nout; i++){
       vv[i] = R_PosInf;
       ii[i] = 0L;
@@ -641,8 +642,8 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP ranges_, SEXP pair_
     do_gower(temprec_, y_, ranges_, pair_, factor_pair_, eps_, nthread_, work, d_);
     // push down distances & indices.
     dist = REAL(d_);
-    for ( int k=0; k < ny; k++){
-      push(dist[k], k+1, value, index, n);
+    for ( int k=0; k < ny; k++, dist++){
+      push(*dist, k+1, value, index, n);
     }
     value += n;
     index += n;
