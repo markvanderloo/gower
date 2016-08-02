@@ -65,7 +65,7 @@ static inline void gower_logi(int *x, int nx, int *y, int ny
    , double *num, double *den)
 {
 
-  # pragma omp parallel num_threads(NTHREAD) 
+  #pragma omp parallel num_threads(NTHREAD) 
   {
     int nt = MAX(nx,ny);
     double dijk, sijk;
@@ -99,7 +99,7 @@ static inline void gower_cat(int *x, int nx, int *y, int ny
   , double *num, double *den)
 {
 
-  # pragma omp parallel num_threads(NTHREAD)
+  #pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx,ny);
     double dijk, sijk;
@@ -130,7 +130,7 @@ static inline void gower_cat(int *x, int nx, int *y, int ny
 
 // strings. Treated as categories.
 static inline void gower_str(SEXP x, int nx, SEXP y, int ny, double *num, double *den){
-  # pragma omp parallel num_threads(NTHREAD)
+  #pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx, ny);
     double dijk, sijk;
@@ -167,10 +167,10 @@ static inline void gower_num(double *x, int nx, double *y, int ny,double R
     , double *num, double *den)
 {
   if ( !isfinite(R) || R < EPS ){
-    warning("skipping variable with zero or non-finite range\n");
+    warning("skipping variable with zero or non-finite range.");
     return;
   } 
-  # pragma omp parallel num_threads(NTHREAD)
+  #pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx,ny);
     double dijk, sijk;
@@ -210,7 +210,7 @@ static inline void gower_dbl_int(double *x, int nx, int *y, int ny,double R
     return;
   }
 
-  # pragma omp parallel num_threads(NTHREAD)
+  #pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx, ny);
     double dijk, sijk;
@@ -245,7 +245,7 @@ static inline void gower_int(int *x, int nx, int *y, int ny, double R
     warning("skipping variable with zero or non-finite range\n");
     return;
   }
-  # pragma omp parallel num_threads(NTHREAD)
+  #pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx, ny);
     double dijk, sijk;
@@ -292,17 +292,19 @@ static void get_dbl_range(double *x, int nx, double *min, double *max){
     return ;
   }
 
-
-  # pragma omp parallel for reduction(min:imin), reduction(max:imax)
-  for ( int i=0; i<nx; i++){
-    if (isfinite(x[i])){
-      if (x[i] > *max){
-        imax = x[i];
-      } else if ( *ix < *min ){
-        imin = x[i];
+  #pragma omp parallel num_threads(NTHREAD)
+  {
+  #pragma omp for reduction(min:imin), reduction(max:imax)
+    for ( int i=0; i<nx; i++){
+      if (isfinite(x[i])){
+        if (x[i] > imax){
+          imax = x[i];
+        } else if ( x[i] < imin ){
+          imin = x[i];
+        }
       }
     }
-  }
+  }// end parallel region
   *min = imin;
   *max = imax;
 }
@@ -327,7 +329,7 @@ static void get_int_range(int *x, int nx, double *min, double *max){
   }
 
    
-  # pragma omp parallel for reduction(min:imin), reduction(max:imax)
+  #pragma omp parallel for reduction(min:imin), reduction(max:imax)
   for ( int i=0; i<nx; i++){
     if ( x[i] != NA_INTEGER ){
       if (x[i] > imax){
@@ -387,7 +389,8 @@ static double get_xy_range(SEXP x, SEXP y){
 
 }
 
-SEXP R_get_xy_range(SEXP x_, SEXP y_){
+SEXP R_get_xy_range(SEXP x_, SEXP y_, SEXP nthread_){
+  NTHREAD = INTEGER(nthread_)[0];
   SEXP out = allocVector(REALSXP,1L);
   PROTECT(out);
   REAL(out)[0] = get_xy_range(x_, y_);
@@ -432,7 +435,7 @@ static void do_gower(SEXP x, SEXP y, SEXP ranges_, SEXP pair_
   int type_y;
   double R;
 
-  // loop over coluns of x, compare with paired columns in y.
+  // loop over columns of x, compare with paired columns in y.
   for ( int j = 0; j < npair; j++){
     if (pair[j] == -1L) continue; // no paired column.
     switch( TYPEOF(VECTOR_ELT(x,j)) ) {
@@ -611,9 +614,9 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP ranges_, SEXP pair_
   // initialize output distance.
   double *vv=REAL(VECTOR_ELT(out,1L));
   int *ii=INTEGER(VECTOR_ELT(out,0L));
-  # pragma omp parallel num_threads(NTHREAD) 
+  #pragma omp parallel num_threads(NTHREAD) 
   { 
-    # pragma omp for schedule(static)
+    #pragma omp for schedule(static)
     for(int i=0; i<nout; i++){
       vv[i] = R_PosInf;
       ii[i] = 0L;

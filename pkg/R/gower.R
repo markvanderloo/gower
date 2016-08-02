@@ -100,15 +100,15 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
     pair[pair_x] <- pair_y
   }
   
+  nthread <- as.integer(nthread)
   ranges <- numeric(length(pair))
   for ( i in seq_along(pair)){
     if (pair[i] == 0 ) next
-    ranges[i] <- .Call("R_get_xy_range",x[[i]],y[[pair[i]]])
+    ranges[i] <- .Call("R_get_xy_range",x[[i]],y[[pair[i]]],nthread)
   }
   
   factor_pair <- as.integer(sapply(x,is.factor))
   eps <- as.double(eps)
-  nthread <- as.integer(nthread)
   pair <- as.integer(pair-1L)
   if (is.null(n)){
     .Call(R_gower, x, y , ranges, pair, factor_pair, eps, nthread)
