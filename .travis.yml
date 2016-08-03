@@ -1,8 +1,10 @@
 
 # travis config
 
+sudo: required
+dist: trusty
+
 language: r
-sudo: false
 cache: packages
 
 before_install:
