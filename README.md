@@ -6,7 +6,8 @@
 
 
 ### gower
-Gower's distance for R
+
+Gower's distance for R. Based in C, using openMP for parallelization.
 
 ### Usage
 
@@ -26,6 +27,9 @@ mat <- gower_topn(iris, reviris, n=5)
 ## mat$distance: Array of distances (sorted from small to large)
 
 ```
+
+More info in the [vignette](https://github.com/markvanderloo/gower/blob/master/pkg/vignettes/intro.Rmd)
+
 
 ### Installation
 
