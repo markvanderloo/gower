@@ -8,6 +8,36 @@
 ### gower
 Gower's distance for R
 
+### Usage
+
+```
+library(gower)
+reviris <- iris[rev(seq_len(nrow(iris))),,drop=FALSE]
+# compute distances
+d <- gower_dist(iris, reviris)
+
+# data.frame with less records is recycled
+d <- gower_dist(iris[1:3,,drop=FALSE], reviris)
+
+# compute top-n matches
+mat <- gower_topn(iris, reviris, n=5)
+
+## mat$index   : Array of indices (sorted from better to worse match)
+## mat$distance: Array of distances (sorted from small to large)
+
+```
+
+### Installation
+
+First, install the [drat](https://cran.r-project.org/package=drat) package. Users of the OS who's name shall not be mentioned need to install [Rtools](https://cran.r-project.org/bin/windows/Rtools/) first.
+```
+if(!require(drat)) install.packages('drat')
+drat::addRepo('markvanderloo')
+install.packages('gower',type='source')
+
+```
+
+
 ### Reference
 
 Gower (1971) A general coefficient of similarity and some of its properties. _Biometrics_ **27** 857-874 [pdf](http://venus.unive.it/romanaz/modstat_ba/gowdis.pdf)
