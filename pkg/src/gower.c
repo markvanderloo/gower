@@ -58,6 +58,27 @@ SEXP R_get_max_threads(){
 }
 
 
+SEXP R_get_num_procs(){
+  SEXP out = allocVector(INTSXP, 1L);
+  PROTECT(out);
+  INTEGER(out)[0] = 1L;
+  #ifdef _OPENMP
+  INTEGER(out)[0] = omp_get_num_procs();
+  #endif
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP R_get_thread_limit(){
+  SEXP out = allocVector(INTSXP, 1L);
+  PROTECT(out);
+  INTEGER(out)[0] = 1L;
+  #ifdef _OPENMP
+  INTEGER(out)[0] = omp_get_thread_limit();
+  #endif
+  UNPROTECT(1);
+  return out;
+}
 
 
 // presence or absence of a character. x and y are 0 (FALSE) or 1 (TRUE)
