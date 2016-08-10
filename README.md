@@ -33,6 +33,17 @@ More info in the [vignette](https://github.com/markvanderloo/gower/blob/master/p
 
 ### Installation
 
+#### From CRAN
+
+```
+install.packages("gower")
+```
+
+
+#### Beta versions
+
+Made available through my drat repo.
+
 First, install the [drat](https://cran.r-project.org/package=drat) package. Users of the OS who's name shall not be mentioned need to install [Rtools](https://cran.r-project.org/bin/windows/Rtools/) first.
 ```
 if(!require(drat)) install.packages('drat')
