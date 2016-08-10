@@ -303,13 +303,13 @@ static void get_dbl_range(double *x, int nx, double *min, double *max){
 
   double imin=x[0], imax=x[0];
   for ( int i=0; i<nx; i++, ix++ ){
-    if (isfinite(*min)) break;
+    if (isfinite(*ix)) break;
     imin = *ix; 
     imax = *ix;
   }
   
   // all non-finite, range not computable.
-  if ( !isfinite(*min) ){
+  if ( !isfinite(imin) ){
     return ;
   }
 
