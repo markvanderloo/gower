@@ -6,13 +6,13 @@ LazyData: no
 Type: Package
 LazyLoad: yes
 Authors@R: c( person("Mark", "van der Loo", role=c("aut","cre"),email="mark.vanderloo@gmail.com"))
-Description: Compute Gower's similarity (or distance) coefficient between records. Compute 
+Description: Compute Gower's distance (or similarity) coefficient between records. Compute 
     the top-n matches between records. Core algorithms are executed in parallel on systems
     supporting openMP.
-Version: 0.0.1
+Version: 0.1.0
 URL: https://github.com/markvanderloo/gower
 BugReports: https://github.com/markvanderloo/gower/issues
-Date: 2016-07-29
+Date: 2016-08-10
 Suggests:
     testthat,
     knitr,
