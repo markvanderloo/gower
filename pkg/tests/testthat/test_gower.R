@@ -99,5 +99,15 @@ test_that("just to get code-coverage right",{
 })
 
 
+context("regression tests")
+test_that("topn w/n=1",{
+  dat <- data.frame(x = c(NA,2,4,5), y = c(6,7,NA,10))
+  L <- gower_topn(dat[c(1,3),],dat[c(2,4),],n=1)
+  expect_equivalent(as.vector(L$index),c(1,2))
+})
+
+
+
+
 
 
