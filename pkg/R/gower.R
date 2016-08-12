@@ -106,9 +106,10 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
     if (pair[i] == 0 ) next
     ranges[i] <- .Call("R_get_xy_range",x[[i]],y[[pair[i]]],nthread)
   }
-  
+
   factor_pair <- as.integer(sapply(x,is.factor))
   eps <- as.double(eps)
+  # translate to C-indices (base-0).
   pair <- as.integer(pair-1L)
   if (is.null(n)){
     .Call(R_gower, x, y , ranges, pair, factor_pair, eps, nthread)
