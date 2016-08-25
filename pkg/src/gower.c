@@ -24,6 +24,17 @@
 #include <omp.h>
 #endif
 
+/* R-windows-oldrel (3.2.x) uses gcc 4.6.3  which we need to detect */
+#ifdef __GNUC__
+#if __GNUC__ <= 4 && __GNUC_MINOR__ <= 6
+#else
+#define HAS_REDUCTION
+#endif
+#endif
+
+
+
+
 #include <math.h>
 #include <R.h>
 #include <Rdefines.h>
@@ -314,9 +325,13 @@ static void get_dbl_range(double *x, int nx, double *min, double *max){
     return ;
   }
 
+  #ifdef HAS_REDUCTION
   #pragma omp parallel num_threads(NTHREAD)
+  #endif
   {
+    #ifdef HAS_REDUCTION
     #pragma omp for reduction(min:imin), reduction(max:imax)
+    #endif
     for ( int i=0; i<nx; i++){
       if (isfinite(x[i])){
         if (x[i] > imax){
@@ -351,7 +366,9 @@ static void get_int_range(int *x, int nx, double *min, double *max){
   }
 
    
+  #ifdef HAS_REDUCTION
   #pragma omp parallel for reduction(min:imin), reduction(max:imax)
+  #endif
   for ( int i=0; i<nx; i++){
     if ( x[i] != NA_INTEGER ){
       if (x[i] > imax){
@@ -421,13 +438,13 @@ SEXP R_get_xy_range(SEXP x_, SEXP y_, SEXP nthread_){
 }
 
 
-// testfun
+/*
 static void print_vec(double *x, int n){
   for ( int i=0; i<n; i++){
     Rprintf("(%d) = %4.3f, ",i,x[i]);
   }
   Rprintf("\n");
-}
+}*/
 
 static void do_gower(
   SEXP x               // a data.frame
