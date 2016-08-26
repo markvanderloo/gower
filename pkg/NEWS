@@ -1,5 +1,5 @@
 version 0.1.1
-- Made compilation dependent on gcc version for compatability with Windows R<3.2.x
+- Made compilation dependent on gcc version for compatability with Windows R<=3.2.x
 - Bugfix in range calculation causing bad distance computation. 
 
 version 0.1.0 
