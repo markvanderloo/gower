@@ -312,7 +312,7 @@ static void get_dbl_range(double *x, int nx, double *min, double *max){
   double *ix = x;
 
 
-  double imin, imax;
+  double imin=*ix, imax=*ix;
 
   for ( int i=0; i<nx; i++, ix++ ){
     imin = *ix; 
