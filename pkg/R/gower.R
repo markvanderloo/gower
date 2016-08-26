@@ -28,7 +28,7 @@
 #'    See Details below.
 #' @param pair_y \code{[numeric|character] (optional)} Columns in \code{y} used for comparison. 
 #'    See Details below.
-#' @param eps = \code{[numeric] (optional)} Computed numbers (variable ranges) 
+#' @param eps \code{[numeric] (optional)} Computed numbers (variable ranges) 
 #'    smaller than \code{eps} are treated as zero. 
 #' @param nthread Number of threads to use for parallelization. By default,
 #'    for a dual-core machine, 2 threads are used. For any other machine 
@@ -48,6 +48,10 @@
 #' @export
 gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8
                        ,nthread=getOption("gd_num_thread")){
+  check_recycling(nrow(x),nrow(y))
+  check_recycling(nrow(x),nrow(y))
+  check_recycling(nrow(x),nrow(y))
+  check_recycling(nrow(x),nrow(y))
   gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y,n=NULL,eps=eps,nthread=nthread)
 }
 
@@ -83,8 +87,7 @@ gower_topn <- function(x, y, pair_x=NULL, pair_y = NULL, n=5, eps=1e-8
 
 
 gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
-  stopifnot(is.numeric(eps), eps>0)
-  
+  stopifnot(is.numeric(eps), eps>0) 
   
   if (is.null(pair_x) & is.null(pair_y)){
     pair <- match(names(x),names(y),nomatch = 0L)
@@ -126,8 +129,13 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
     
 }
 
+RECYCLEWARNING <- tryCatch(1:3+1:2,warning=function(e) e$message)
 
-
+check_recycling <- function(nx,ny){
+  mx <- max(nx,ny)
+  mn <- min(nx,ny)
+  if ((mx %% mn) != 0) warning(RECYCLEWARNING, call.=FALSE)
+}
 
 
 

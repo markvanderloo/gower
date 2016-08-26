@@ -99,6 +99,11 @@ test_that("just to get code-coverage right",{
 })
 
 
+test_that("warning on recycling",{
+  expect_warning(gower_dist(iris[1:3,],iris[1:2,]))
+  expect_warning(gower_dist(iris[1:2,],iris[1:3,]))
+})
+
 context("regression tests")
 test_that("topn w/n=1",{
   dat <- data.frame(x = c(NA,2,4,5), y = c(6,7,NA,10))
