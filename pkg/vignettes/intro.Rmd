@@ -69,7 +69,7 @@ The second array is called `distance` and it contains the corresponding distance
 ## Parallelization, memory usage
 
 
-The underlying algorithm is implemented in C and parallelized using [OpenMP](http://www.openmp.org). OpenMP is available on most systems that can run R. Please see [this section](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#OpenMP-support) of the writing R extensions manual for up-to-details details on which systems are supported. At the time of writing (summer 2016), OSX is the only system not supporting OpenMP out of the box. You can still make it work by installing the gcc toolchain and compoling the package.
+The underlying algorithm is implemented in C and parallelized using [OpenMP](http://www.openmp.org). OpenMP is available on most systems that can run R. Please see [this section](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#OpenMP-support) of the writing R extensions manual for up-to-details details on which systems are supported. At the time of writing (summer 2016), OSX is the only system not supporting OpenMP out of the box. You can still make it work by installing the gcc toolchain and compiling the package (and R).
 
 If OpenMP is not supported, the package will still work but the core algorithms will not be parallelized.
 
