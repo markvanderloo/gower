@@ -1,3 +1,7 @@
+version 0.1.2
+- Fixed valgrind warning
+
+
 version 0.1.1
 - gower_dist now issues warning when nr of rows on input do not divide (recycling)
 - Code now depends on gcc version for compatability with Windows + R<=3.2.x

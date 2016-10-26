@@ -399,7 +399,11 @@ static void get_range(SEXP x, double *min, double *max){
 
 static double get_xy_range(SEXP x, SEXP y){
 
-  double x_min, x_max, y_min, y_max, min, max;
+  double x_min = R_NegInf
+      , x_max = R_PosInf
+      , y_min = R_NegInf
+      , y_max = R_PosInf
+      , min, max;
 
   get_range(x, &x_min, &x_max);
   get_range(y, &y_min, &y_max);
