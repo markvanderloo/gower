@@ -115,10 +115,10 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
   # translate to C-indices (base-0).
   pair <- as.integer(pair-1L)
   if (is.null(n)){
-    .Call(R_gower, x, y , ranges, pair, factor_pair, eps, nthread)
+    .Call("R_gower", x, y , ranges, pair, factor_pair, eps, nthread)
     
   } else {
-    L <- .Call(R_gower_topn, x, y, ranges, pair, factor_pair, as.integer(n), eps, nthread)
+    L <- .Call("R_gower_topn", x, y, ranges, pair, factor_pair, as.integer(n), eps, nthread)
     names(L) <- c("index","distance")
     dim(L$index) <- c(n,nrow(x))
     dim(L$distance) <- dim(L$index)

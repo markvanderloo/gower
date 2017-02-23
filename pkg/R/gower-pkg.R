@@ -4,7 +4,7 @@
 #' 
 #' @name gower-package
 #' @docType package
-#' @useDynLib gower R_gower R_gower_topn
+#' @useDynLib gower, .registration=TRUE
 #' 
 {}
 

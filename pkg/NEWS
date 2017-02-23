@@ -1,6 +1,6 @@
 version 0.1.2
-- Fixed valgrind warning
-
+- fixed valgrind warning
+- registered native routines, as now recommended by CRAN
 
 version 0.1.1
 - gower_dist now issues warning when nr of rows on input do not divide (recycling)

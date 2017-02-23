@@ -2,5 +2,4 @@
 
 export(gower_dist)
 export(gower_topn)
-useDynLib(gower,R_gower)
-useDynLib(gower,R_gower_topn)
+useDynLib(gower, .registration=TRUE)
