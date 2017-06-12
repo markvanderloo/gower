@@ -113,7 +113,7 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
   factor_pair <- as.integer(sapply(x,is.factor))
   # check factor levels
   for (i in seq_along(pair)) {
-    if (factor_pair[i] && 
+    if (factor_pair[i] && pair[i] &&
         !isTRUE(all.equal(levels(x[[i]]), levels(y[[pair[i]]]))))
       stop("Levels in column ", i, " of x do  not match those of column ", 
         pair[i], " in y.")
