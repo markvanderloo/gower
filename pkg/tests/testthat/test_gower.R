@@ -62,7 +62,14 @@ test_that("exceptions",{
   ))
 
   expect_warning(gower_dist(data.frame(x=rep(1,100)), data.frame(x=1,100)))
+  
+  expect_error(gower_dist(
+    data.frame(a = letters[1:3], stringsAsFactors = TRUE),
+    data.frame(a = letters[2:4], stringsAsFactors = TRUE)
+  ))
 })
+
+
 
 
 context("Top-n")
