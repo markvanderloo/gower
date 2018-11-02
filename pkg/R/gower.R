@@ -102,7 +102,9 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
     pair <- numeric(ncol(x))
     pair[pair_x] <- pair_y
   }
-  
+
+  # check column classes
+
   nthread <- as.integer(nthread)
   ranges <- numeric(length(pair))
   for ( i in seq_along(pair)){
@@ -110,14 +112,32 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
     ranges[i] <- .Call("R_get_xy_range",x[[i]],y[[pair[i]]],nthread)
   }
 
-  factor_pair <- as.integer(sapply(x,is.factor))
-  # check factor levels
-  for (i in seq_along(pair)) {
-    if (factor_pair[i] && pair[i] &&
-        !isTRUE(all.equal(levels(x[[i]]), levels(y[[pair[i]]]))))
-      stop("Levels in column ", i, " of x do  not match those of column ", 
+  factor_x <- sapply(x,is.factor)
+  factor_y <- sapply(y,is.factor)
+  
+  for ( i in seq_along(pair) ){
+    iy <- pair[i]
+    if (!factor_x[i] & !factor_y[iy]) next
+
+		if ( factor_x[i] && !factor_y[iy] ){
+			stop("Column ", i, " of x is of class factor while matching column "
+          , pair[i]," of y is of class ", class(y[[iy]]) )
+		}
+		if ( !factor_x[i] && factor_y[iy] ){
+			stop("Column ", i, " of x is of class ", class(x[[i]]), " while matching column "
+          , pair[i]," of y is of class factor" )
+		}
+    if (factor_x[i] && factor_y[iy]){
+			if ( !isTRUE( all.equal( levels(x[[i]]), levels(y[[iy]]) ) ) ){
+        stop("Levels in column ", i, " of x do  not match those of column ", 
         pair[i], " in y.")
-  }
+
+			}
+		}
+	}
+
+
+  factor_pair <- as.integer(factor_x)
   
   eps <- as.double(eps)
   # translate to C-indices (base-0).

@@ -67,6 +67,10 @@ test_that("exceptions",{
     data.frame(a = letters[1:3], stringsAsFactors = TRUE),
     data.frame(a = letters[2:4], stringsAsFactors = TRUE)
   ))
+  expect_error(gower_dist(
+    data.frame(a = letters[1:3], stringsAsFactors = FALSE),
+    data.frame(a = letters[2:4], stringsAsFactors = TRUE)
+  ))
 })
 
 

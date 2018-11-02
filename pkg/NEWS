@@ -1,3 +1,6 @@
+version 0.1.3
+- fixed issue where comparing factors with characters would cause a crash (thanks to Max Kuhn)
+
 version 0.1.2
 - fixed valgrind warning
 - registered native routines, as now recommended by CRAN
