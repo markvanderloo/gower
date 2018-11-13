@@ -18,7 +18,7 @@ rm -rf output
 
 
 echo "######## Generate documentation..."
-$R -q -e "devtools::document('pkg')"
+$R -q -e "devtools::load_all('pkg'); devtools::document('pkg')"
 
 
 echo "######## Building package in output..."
