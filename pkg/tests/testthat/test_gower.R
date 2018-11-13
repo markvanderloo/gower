@@ -42,6 +42,13 @@ test_that("multivariate dataset",{
   expect_equal(gower_dist(dM1,dM2), c(0,3/4,3/4,0))
 })
 
+test_that("ignoring column name cases",{
+	dat1 <- iris[1:5,]
+  dat2 <- iris[1:5,]
+  names(dat2) <- tolower(names(dat2))
+  expect_equal(gower_dist(dat1, dat2, ignore_case=TRUE),rep(0,5))
+})
+
 test_that("recycling",{
   expect_equal(length(gower_dist(x=iris[1,],y=iris)), nrow(iris))
   expect_equal(length(gower_dist(x=iris,y=iris[1,])), nrow(iris))

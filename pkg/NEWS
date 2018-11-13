@@ -1,4 +1,5 @@
 version 0.1.3
+- gower_dist and gower_topn gain `ignore_case` argument for automatic column matching.
 - gower_dist now returns numeric(0) invisibly when there are no columns to compare.
 - gower_topn now returns a list with empty matrices when there are no columns to compare.
 - gower_topn now warns when n>nrow(y) and sets n=nrow(y)

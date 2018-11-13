@@ -29,7 +29,9 @@
 #' @param pair_y \code{[numeric|character] (optional)} Columns in \code{y} used for comparison. 
 #'    See Details below.
 #' @param eps \code{[numeric] (optional)} Computed numbers (variable ranges) 
-#'    smaller than \code{eps} are treated as zero. 
+#'    smaller than \code{eps} are treated as zero.
+#' @param ignore_case \code{[logical]} Toggle ignore case when neither \code{pair_x}
+#'    nor \code{pair_y} are user-defined. 
 #' @param nthread Number of threads to use for parallelization. By default,
 #'    for a dual-core machine, 2 threads are used. For any other machine 
 #'    n-1 cores are used so your machine doesn't freeze during a big computation. 
@@ -49,9 +51,10 @@
 #' 
 #' @export
 gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8
-                       ,nthread=getOption("gd_num_thread")){
+                       , ignore_case=FALSE, nthread=getOption("gd_num_thread")){
   check_recycling(nrow(x),nrow(y))
-  gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y,n=NULL,eps=eps,nthread=nthread)
+  gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y
+    , n=NULL, eps=eps, ignore_case=ignore_case, nthread=nthread)
 }
 
 #' Find the top-n matches
@@ -82,17 +85,20 @@ gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8
 #' 
 #' @export
 gower_topn <- function(x, y, pair_x=NULL, pair_y = NULL, n=5, eps=1e-8
-                       , nthread=getOption("gd_num_thread")){
-  gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y,n=n,eps=eps,nthread)
+                       , ignore_case=FALSE, nthread=getOption("gd_num_thread")){
+  gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y
+  , n=n, eps=eps, ignore_case=ignore_case, nthread=nthread)
 }
 
 
 
-gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
+gower_work <- function(x, y, pair_x, pair_y, n, eps, ignore_case, nthread){
   stopifnot(is.numeric(eps), eps>0) 
   
   if (is.null(pair_x) & is.null(pair_y)){
-    pair <- match(names(x),names(y),nomatch = 0L)
+    xnames <- if(ignore_case) toupper(names(x)) else names(x)
+    ynames <- if(ignore_case) toupper(names(y)) else names(y)
+    pair <- match(xnames, ynames, nomatch = 0L)
   } else if (is.null(pair_x)){
     pair <- pair_y
   } else {

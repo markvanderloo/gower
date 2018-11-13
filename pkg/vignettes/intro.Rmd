@@ -40,7 +40,11 @@ If one data frame has less records than the other, the shortest one is recycled 
 gower_dist(iris[1,], dat1)
 ```
 
-It is possible to control how columns from the two data sets are paired for comparison using the `pair_x` and `pair_y` arguments. This comes in handy when similar colums have different names accross datasets.  By default, columns with matching names are paired. The behaviour is somewhat similar to that of base R's `merge` in that respect.
+It is possible to control how columns from the two data sets are paired for
+comparison using the `pair_x` and `pair_y` arguments. This comes in handy when
+similar colums have different names accross datasets.  By default, columns with
+matching names are paired. The behaviour is somewhat similar to that of base
+R's `merge` in that respect.
 
 ```{r}
 dat1 <- dat2 <- iris[1:10,]
@@ -49,6 +53,13 @@ gower_dist(dat1, dat2)
 # tell gower_dist to match columns 1..5 in dat1 with column 1..5 in dat2
 gower_dist(dat1, dat2, pair_y=1:5)
 ```
+It is also possible to explicitly ignore case when matching columns
+by name.
+```{r}
+gower_dist(dat1, dat2, ignore_case=TRUE)
+```
+
+
 
 ## Computing the top-n matches
 
