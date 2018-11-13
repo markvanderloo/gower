@@ -33,7 +33,7 @@
 #' @param nthread Number of threads to use for parallelization. By default,
 #'    for a dual-core machine, 2 threads are used. For any other machine 
 #'    n-1 cores are used so your machine doesn't freeze during a big computation. 
-#'    The maximum nr of threads are determined from \code{omp::get_max_threads}.
+#'    The maximum nr of threads are determined using \code{omp_get_max_threads} at C level.
 #' 
 #' 
 #' @return
