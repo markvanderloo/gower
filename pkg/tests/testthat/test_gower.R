@@ -50,7 +50,7 @@ test_that("recycling",{
 })
 
 
-test_that("exceptions",{
+test_that("edge cases and exceptions",{
   expect_warning(gower_dist(
     x = data.frame(x=c(1.2,1.2,1.2))
     , y = data.frame(x=c(1.2,1.2,1.2))
@@ -62,7 +62,8 @@ test_that("exceptions",{
   ))
 
   expect_warning(gower_dist(data.frame(x=rep(1,100)), data.frame(x=1,100)))
-  
+
+
   expect_error(gower_dist(
     data.frame(a = letters[1:3], stringsAsFactors = TRUE),
     data.frame(a = letters[2:4], stringsAsFactors = TRUE)
@@ -71,6 +72,10 @@ test_that("exceptions",{
     data.frame(a = letters[1:3], stringsAsFactors = FALSE),
     data.frame(a = letters[2:4], stringsAsFactors = TRUE)
   ))
+  expect_equal(gower_dist(data.frame(x=1:3),data.frame(y=1:3)), numeric(0))
+  expect_equal(gower_topn(data.frame(x=1:3),data.frame(y=1:3))$distance, matrix(0)[0,0])
+  expect_equal(gower_topn(data.frame(x=1:3),data.frame(y=1:3))$index, matrix(0)[0,0])
+
 })
 
 

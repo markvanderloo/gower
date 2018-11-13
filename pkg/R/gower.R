@@ -38,6 +38,8 @@
 #' 
 #' @return
 #'   A \code{numeric} vector of length \code{max(nrow(x),nrow(y))}.
+#'   When there are no columns to compare, a message is printed and both
+#'   \code{numeric(0)} is returned invisibly.
 #' 
 #' @seealso \code{\link{gower_topn}}
 #' 
@@ -48,9 +50,6 @@
 #' @export
 gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8
                        ,nthread=getOption("gd_num_thread")){
-  check_recycling(nrow(x),nrow(y))
-  check_recycling(nrow(x),nrow(y))
-  check_recycling(nrow(x),nrow(y))
   check_recycling(nrow(x),nrow(y))
   gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y,n=NULL,eps=eps,nthread=nthread)
 }
@@ -70,7 +69,10 @@ gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8
 #'  A \code{list} with two array elements: \code{index}
 #'  and \code{distance}. Both have size \code{n X nrow(x)}. Each ith column 
 #'  corresponds to the top-n best matches of \code{x} with rows in \code{y}.
-#' 
+#'  When there are no columns to compare, a message is printed and both
+#'  \code{distance} and \code{index} will be empty matrices; the list is
+#'  then returned invisibly.
+#'
 #' @examples 
 #' # find the top 4 best matches in the iris data set with itself.
 #' x <- iris[1:3,]
@@ -102,6 +104,16 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, nthread){
     pair <- numeric(ncol(x))
     pair[pair_x] <- pair_y
   }
+  if ( !any(pair > 0) ){
+    message("Nothing to compare")
+		return( if (is.null(n)){ # gower_dist
+				invisible(numeric(0))
+			} else { # gower_topn
+				invisible(list(distance=matrix(0)[0,0],index=matrix(0L)[0,0]))
+			}
+		)
+	}
+
 
   # check column classes
 
