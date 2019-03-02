@@ -94,7 +94,7 @@ SEXP R_get_thread_limit(){
 
 // presence or absence of a character. x and y are 0 (FALSE) or 1 (TRUE)
 static inline void gower_logi(int *x, int nx, int *y, int ny
-   , double *num, double *den)
+   , double *num, double *den, double weight)
 {
 
   #pragma omp parallel num_threads(NTHREAD) 
@@ -118,8 +118,8 @@ static inline void gower_logi(int *x, int nx, int *y, int ny
     for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
       dijk = (double) ((x[i] | y[j]) & !((x[i] == NA_INTEGER) | (y[j] == NA_INTEGER)));
       sijk = (dijk == 1.0) ? (double) (x[i] * y[j]) : 0.0;
-      *inum += dijk * sijk; 
-      *iden += dijk;
+      *inum += weight * dijk * sijk; 
+      *iden += weight * dijk;
       i = recycle(i, num_threads, nx);
       j = recycle(j, num_threads, ny);
     }
@@ -128,7 +128,7 @@ static inline void gower_logi(int *x, int nx, int *y, int ny
 
 // equality of categorical variables, encoded as x, y in {1,2,...,N}.
 static inline void gower_cat(int *x, int nx, int *y, int ny 
-  , double *num, double *den)
+  , double *num, double *den, double weight)
 {
 
   #pragma omp parallel num_threads(NTHREAD)
@@ -151,8 +151,8 @@ static inline void gower_cat(int *x, int nx, int *y, int ny
     for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
       dijk = (double) !(x[i] == NA_INTEGER || y[j] == NA_INTEGER);
       sijk = (dijk==1.0) ? (double) (x[i] == y[j]) : 0.0; 
-      *inum += dijk * sijk; 
-      *iden += dijk;
+      *inum += weight * dijk * sijk; 
+      *iden += weight * dijk;
       i = recycle(i, num_threads, nx);
       j = recycle(j, num_threads, ny);
     }
@@ -161,7 +161,7 @@ static inline void gower_cat(int *x, int nx, int *y, int ny
 }
 
 // strings. Treated as categories.
-static inline void gower_str(SEXP x, int nx, SEXP y, int ny, double *num, double *den){
+static inline void gower_str(SEXP x, int nx, SEXP y, int ny, double *num, double *den, double weight){
   #pragma omp parallel num_threads(NTHREAD)
   {
     int nt = MAX(nx, ny);
@@ -185,8 +185,8 @@ static inline void gower_str(SEXP x, int nx, SEXP y, int ny, double *num, double
       yj = STRING_ELT(y,j);
       dijk = (double) !(xi == NA_STRING || yj == NA_STRING);
       sijk = (dijk==1.0) ? (double) (CHAR(xi) == CHAR(yj)) : 0.0; 
-      *inum += dijk * sijk; 
-      *iden += dijk;
+      *inum += weight * dijk * sijk; 
+      *iden += weight * dijk;
       i = recycle(i, num_threads, nx);
       j = recycle(j, num_threads, ny);
     }
@@ -196,7 +196,7 @@ static inline void gower_str(SEXP x, int nx, SEXP y, int ny, double *num, double
 
 // comparison of numerical variables, by absolute difference divided by range.
 static inline void gower_num(double *x, int nx, double *y, int ny,double R
-    , double *num, double *den)
+    , double *num, double *den, double weight)
 {
   if ( !isfinite(R) || R < EPS ){
     warning("skipping variable with zero or non-finite range.");
@@ -223,8 +223,8 @@ static inline void gower_num(double *x, int nx, double *y, int ny,double R
     for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
       dijk = (double) (isfinite(x[i]) & isfinite(y[j]));
       sijk = (dijk==1.0) ? (1.0-fabs(x[i]-y[j])/R) : 0.0;
-      (*inum) += dijk * sijk; 
-      (*iden) += dijk;
+      (*inum) += weight * dijk * sijk; 
+      (*iden) += weight * dijk;
       i = recycle(i, num_threads, nx);
       j = recycle(j, num_threads, ny);
     }
@@ -234,7 +234,7 @@ static inline void gower_num(double *x, int nx, double *y, int ny,double R
 
 
 static inline void gower_dbl_int(double *x, int nx, int *y, int ny,double R
-    , double *num, double *den)
+    , double *num, double *den, double weight)
 {
 
   if ( !isfinite(R) || R < EPS ){
@@ -262,8 +262,8 @@ static inline void gower_dbl_int(double *x, int nx, int *y, int ny,double R
     for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
       dijk = (double) (isfinite(x[i]) & (y[j] != NA_INTEGER));
       sijk = (dijk==1.0) ? (1.0-fabs(x[i] - ((double) y[j]) )/R) : 0.0;
-      *inum += dijk * sijk; 
-      *iden += dijk;
+      *inum += weight * dijk * sijk; 
+      *iden += weight * dijk;
       i = recycle(i, num_threads, nx);
       j = recycle(j, num_threads, ny);
     }
@@ -271,7 +271,7 @@ static inline void gower_dbl_int(double *x, int nx, int *y, int ny,double R
 }
 
 static inline void gower_int(int *x, int nx, int *y, int ny, double R
-    , double *num, double *den)
+    , double *num, double *den, double weight)
 {
   if ( !isfinite(R) || R == 0 ){
     warning("skipping variable with zero or non-finite range\n");
@@ -298,8 +298,8 @@ static inline void gower_int(int *x, int nx, int *y, int ny, double R
     for ( int k = ID; k < nt; k += num_threads, inum += num_threads, iden += num_threads){
       dijk = (double) ( (x[i] !=NA_INTEGER) & (y[j] != NA_INTEGER));
       sijk = (dijk==1.0) ? (1.0-fabs( ((double)x[i]) - ((double)y[j]) )/R) : 0.0;
-      *inum += dijk * sijk; 
-      *iden += dijk;
+      *inum += weight * dijk * sijk; 
+      *iden += weight * dijk;
       i = recycle(i, num_threads, nx);
       j = recycle(j, num_threads, ny);
     }
@@ -457,6 +457,7 @@ static void do_gower(
   , SEXP pair_         // int; pair[i] is index in y
   , SEXP factor_pair_  // int; 0 if not factor
   , SEXP eps_          // dbl; numerical zero
+  , SEXP weights_      // dbl; weights[i] is weight for variable i in distance
   , SEXP nthread_      // int; requested nr of threads
   , double *work       // dbl; of length max(nrow(x),nrow(y))
   , SEXP out_)         // dbl; output, length equals work.
@@ -467,6 +468,7 @@ static void do_gower(
   int npair = length(pair_);
 
   double *ranges = REAL(ranges_);
+  double *weights = REAL(weights_);
 
   NTHREAD = INTEGER(nthread_)[0];
 
@@ -495,22 +497,26 @@ static void do_gower(
   // loop over columns of x, compare with paired columns in y.
   for ( int j = 0; j < npair; j++){
     if (pair[j] == -1L) continue; // no paired column.
+    
+    // Get the weight value for this column
+    double weight = weights[j];
+
     switch( TYPEOF(VECTOR_ELT(x,j)) ) {
       case LGLSXP : 
         gower_logi(INTEGER(VECTOR_ELT(x,j)), nrow_x
             , INTEGER(VECTOR_ELT(y,pair[j])), nrow_y
-            ,num, den);
+            ,num, den, weight);
         break;
       case REALSXP : 
         R = ranges[j];
         if (TYPEOF(VECTOR_ELT(y,pair[j])) == REALSXP){
           gower_num(REAL(VECTOR_ELT(x,j)), nrow_x
                 , REAL(VECTOR_ELT(y,pair[j])), nrow_y
-                , R, num, den);
+                , R, num, den, weight);
         } else if (TYPEOF(VECTOR_ELT(y,pair[j])) == INTSXP) {
           gower_dbl_int(REAL(VECTOR_ELT(x,j)), nrow_x
                 , INTEGER(VECTOR_ELT(y,pair[j])), nrow_y
-                , R, num, den);
+                , R, num, den, weight);
         }
         break;
       case INTSXP : 
@@ -519,22 +525,22 @@ static void do_gower(
           R = ranges[j];
           gower_dbl_int(REAL(VECTOR_ELT(y,pair[j])), nrow_y
                 , INTEGER(VECTOR_ELT(x, j)), nrow_x
-                , R, num, den);
+                , R, num, den, weight);
         } else if ( type_y == INTSXP ){
           if ( factor_pair[j] ){ // factor variables
             gower_cat(INTEGER(VECTOR_ELT(x,j)), nrow_x
                     , INTEGER(VECTOR_ELT(y,pair[j])), nrow_y
-                    , num, den);
+                    , num, den, weight);
           } else { // treat as integers
             R = ranges[j];
             gower_int(INTEGER(VECTOR_ELT(x,j)), nrow_x
                     , INTEGER(VECTOR_ELT(y,pair[j])), nrow_y
-                    , R, num, den);
+                    , R, num, den, weight);
           }
         } 
         break;
       case STRSXP :
-        gower_str(VECTOR_ELT(x,j),nrow_x,VECTOR_ELT(y,pair[j]),nrow_y, num, den);
+        gower_str(VECTOR_ELT(x,j),nrow_x,VECTOR_ELT(y,pair[j]),nrow_y, num, den, weight);
     } // end switch
   } // end for
 
@@ -549,7 +555,7 @@ static void do_gower(
 
 
 SEXP R_gower(SEXP x, SEXP y, SEXP ranges_, SEXP pair_
-    , SEXP factor_pair_, SEXP eps_, SEXP nthread_){
+    , SEXP factor_pair_, SEXP eps_, SEXP _weights, SEXP nthread_){
 
 
   int nrow_x = length(VECTOR_ELT(x, 0L))
@@ -562,7 +568,7 @@ SEXP R_gower(SEXP x, SEXP y, SEXP ranges_, SEXP pair_
   // Make room for the workhorse
   double *work = (double *) R_alloc(nt, sizeof(double));
   // Make the horse work
-  do_gower(x, y, ranges_, pair_, factor_pair_, eps_, nthread_, work, out_);
+  do_gower(x, y, ranges_, pair_, factor_pair_, eps_, _weights, nthread_, work, out_);
 
   // cleanup and return
   UNPROTECT(1);
@@ -647,7 +653,7 @@ Rprintf("\n");
 */
 
 SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP ranges_, SEXP pair_
-    , SEXP factor_pair_, SEXP n_, SEXP eps_, SEXP nthread_){
+    , SEXP factor_pair_, SEXP n_, SEXP eps_, SEXP weights_, SEXP nthread_){
 
   int n = INTEGER(n_)[0];
   int ny = length(VECTOR_ELT(y_,0));
@@ -699,7 +705,7 @@ SEXP R_gower_topn(SEXP x_, SEXP y_, SEXP ranges_, SEXP pair_
     // create a list to feed to R_gower
     copyrec(temprec_, x_, i);
     // compute distances
-    do_gower(temprec_, y_, ranges_, pair_, factor_pair_, eps_, nthread_, work, d_);
+    do_gower(temprec_, y_, ranges_, pair_, factor_pair_, eps_, weights_, nthread_, work, d_);
     // push down distances & indices.
     dist = REAL(d_);
     for ( int k=0; k < ny; k++, dist++){

@@ -30,6 +30,8 @@
 #'    See Details below.
 #' @param eps \code{[numeric] (optional)} Computed numbers (variable ranges) 
 #'    smaller than \code{eps} are treated as zero.
+#' @param weights \code{[numeric] (optional)} A vector of weights of length \code{ncol(x)}
+#'    that defines the weight applied to each component of the gower distance.
 #' @param ignore_case \code{[logical]} Toggle ignore case when neither \code{pair_x}
 #'    nor \code{pair_y} are user-defined. 
 #' @param nthread Number of threads to use for parallelization. By default,
@@ -50,11 +52,11 @@
 #' properties." Biometrics (1971): 857-871.
 #' 
 #' @export
-gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8
-                       , ignore_case=FALSE, nthread=getOption("gd_num_thread")){
+gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8, weights=NULL,
+                       ignore_case=FALSE, nthread=getOption("gd_num_thread")){
   check_recycling(nrow(x),nrow(y))
   gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y
-    , n=NULL, eps=eps, ignore_case=ignore_case, nthread=nthread)
+    , n=NULL, eps=eps, weights=weights, ignore_case=ignore_case, nthread=nthread)
 }
 
 #' Find the top-n matches
@@ -84,15 +86,15 @@ gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8
 #' 
 #' 
 #' @export
-gower_topn <- function(x, y, pair_x=NULL, pair_y = NULL, n=5, eps=1e-8
-                       , ignore_case=FALSE, nthread=getOption("gd_num_thread")){
+gower_topn <- function(x, y, pair_x=NULL, pair_y = NULL, n=5, eps=1e-8, weights = NULL,
+                       ignore_case=FALSE, nthread=getOption("gd_num_thread")){
   gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y
-  , n=n, eps=eps, ignore_case=ignore_case, nthread=nthread)
+  , n=n, eps=eps, weights=weights, ignore_case=ignore_case, nthread=nthread)
 }
 
 
 
-gower_work <- function(x, y, pair_x, pair_y, n, eps, ignore_case, nthread){
+gower_work <- function(x, y, pair_x, pair_y, n, eps, weights, ignore_case, nthread){
   stopifnot(is.numeric(eps), eps>0) 
   
   if (is.null(pair_x) & is.null(pair_y)){
@@ -120,6 +122,10 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, ignore_case, nthread){
 		)
 	}
 
+  # If the user didn't pass any weights, then weight all components of the 
+  # distance equally.
+  if (is.null(weights))
+      weights <- rep(1, ncol(x))
 
   # check column classes
 
@@ -161,10 +167,10 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, ignore_case, nthread){
   # translate to C-indices (base-0).
   pair <- as.integer(pair-1L)
   if (is.null(n)){
-    .Call("R_gower", x, y , ranges, pair, factor_pair, eps, nthread)
+    .Call("R_gower", x, y , ranges, pair, factor_pair, eps, weights, nthread)
     
   } else {
-    L <- .Call("R_gower_topn", x, y, ranges, pair, factor_pair, as.integer(n), eps, nthread)
+    L <- .Call("R_gower_topn", x, y, ranges, pair, factor_pair, as.integer(n), eps, weights, nthread)
     names(L) <- c("index","distance")
     dim(L$index) <- c(n,nrow(x))
     dim(L$distance) <- dim(L$index)
