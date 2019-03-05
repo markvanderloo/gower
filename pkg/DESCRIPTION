@@ -5,7 +5,8 @@ Title: Gower's Distance
 LazyData: no
 Type: Package
 LazyLoad: yes
-Authors@R: c( person("Mark", "van der Loo", role=c("aut","cre"),email="mark.vanderloo@gmail.com"))
+Authors@R: c( person("Mark", "van der Loo", role=c("aut","cre"),email="mark.vanderloo@gmail.com")
+    , person("David", "Turner", role="ctb"))
 Description: Compute Gower's distance (or similarity) coefficient between records. Compute 
     the top-n matches between records. Core algorithms are executed in parallel on systems
     supporting OpenMP.
