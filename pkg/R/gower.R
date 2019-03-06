@@ -150,6 +150,7 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, weights, ignore_case, nthre
   factor_y <- sapply(y,is.factor)
   
   for ( i in seq_along(pair) ){
+    if ( pair[i] == 0 ) next
     iy <- pair[i]
     if (!factor_x[i] & !factor_y[iy]) next
 

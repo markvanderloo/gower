@@ -40,6 +40,11 @@ test_that("multivariate dataset",{
   # not counting NA's in the denominator
   dM1[array(c(2,3,4,1,2,3),dim=c(3,2))] <- NA
   expect_equal(gower_dist(dM1,dM2), c(0,3/4,3/4,0))
+  #auto-matching columns
+  expect_equivalent(gower_dist(women, women[1]),rep(0,nrow(women)))
+ 
+
+
 })
 
 test_that("ignoring column name cases",{
