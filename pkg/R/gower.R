@@ -122,6 +122,16 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, weights, ignore_case, nthre
 		)
 	}
 
+
+  if ( !is.null(weights) && ( any( weights < 0 ) || !all(is.finite(weights)) ) ){
+    stop("At least one element of 'weights' is not a finite nonnegative number"
+       , call. = FALSE)
+  }
+  if ( !is.null(weights) && length(weights) < length(pair) ){
+    msg <- sprintf("%d weights specified, expected %d"
+                 , length(weights), length(pair))
+    stop(msg, call. = FALSE)
+  }
   # If the user didn't pass any weights, then weight all components of the 
   # distance equally.
   if (is.null(weights))

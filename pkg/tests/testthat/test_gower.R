@@ -43,10 +43,10 @@ test_that("multivariate dataset",{
 })
 
 test_that("ignoring column name cases",{
-	dat1 <- iris[1:5,]
-  dat2 <- iris[1:5,]
+	dat1 <- iris[1:6,]
+  dat2 <- iris[1:6,]
   names(dat2) <- tolower(names(dat2))
-  expect_equal(gower_dist(dat1, dat2, ignore_case=TRUE),rep(0,5))
+  expect_equal(gower_dist(dat1, dat2, ignore_case=TRUE),rep(0,6))
 })
 
 test_that("recycling",{
@@ -54,6 +54,23 @@ test_that("recycling",{
   expect_equal(length(gower_dist(x=iris,y=iris[1,])), nrow(iris))
   expect_equal(length(gower_dist(x=iris[1:3,],y=iris)), nrow(iris))
   expect_equal(length(gower_dist(x=iris,y=iris[1:3,])), nrow(iris))
+})
+
+
+test_that("weights",{
+  expect_error(gower_topn(women, women, weights=-(1:4)))
+  expect_error(gower_dist(women, women, weights=c(NA,1:3)))
+
+  d1 <- women[1,]
+  d2 <- women[2,]
+  w <- c(1,2)
+  r <- sapply(women, function(x) abs(diff(range(x))))
+  
+  d12 <- (w[1]*abs(d1[1,1]-d2[1,1])/r[1] + w[2]*abs(d1[1,2]-d2[1,2])/r[2])/sum(w)
+  wom2 <- women
+  wom2[1:2,] <- wom2[2:1,]
+  expect_equivalent(gower_dist(women,wom2, weights=w)[1], d12)
+  
 })
 
 
