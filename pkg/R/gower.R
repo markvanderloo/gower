@@ -1,6 +1,4 @@
 
-
-
 #' Gower's distance
 #'
 #' Compute Gower's distance, pairwise between records in two data sets \code{x} 

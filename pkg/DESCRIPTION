@@ -10,10 +10,10 @@ Authors@R: c( person("Mark", "van der Loo", role=c("aut","cre"),email="mark.vand
 Description: Compute Gower's distance (or similarity) coefficient between records. Compute 
     the top-n matches between records. Core algorithms are executed in parallel on systems
     supporting OpenMP.
-Version: 0.1.3
+Version: 0.2.0
 URL: https://github.com/markvanderloo/gower
 BugReports: https://github.com/markvanderloo/gower/issues
-Date: 2017-02-23
+Date: 2019-03-06
 Suggests:
     testthat,
     knitr,
