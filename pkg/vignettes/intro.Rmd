@@ -4,7 +4,7 @@ author: "Mark van der Loo"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
-    toc: true
+    toc: true 
 vignette: >
   %\VignetteIndexEntry{Introduction to the gower package}
   %\VignetteEngine{knitr::rmarkdown}
