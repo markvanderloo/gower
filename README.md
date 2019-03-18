@@ -29,7 +29,7 @@ mat <- gower_topn(iris, reviris, n=5)
 
 ```
 
-More info in the [vignette](https://github.com/markvanderloo/gower/blob/master/pkg/vignettes/intro.Rmd)
+More info in the [vignette](https://cran.r-project.org/web/packages/gower/vignettes/intro.pdf)
 
 
 ### Installation
@@ -56,4 +56,4 @@ install.packages('gower',type='source')
 
 ### Reference
 
-Gower (1971) A general coefficient of similarity and some of its properties. _Biometrics_ **27** 857-874 [pdf](http://venus.unive.it/romanaz/modstat_ba/gowdis.pdf)
+Gower (1971) A general coefficient of similarity and some of its properties. _Biometrics_ **27** 857-874 [pdf](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.412.4155&rep=rep1&type=pdf)
