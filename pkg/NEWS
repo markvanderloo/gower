@@ -1,3 +1,6 @@
+version 0.2.1
+- moved test framework to 'tinytest'
+
 version 0.2.0
 - gower_dist and gower_topn gain `weight` argument for weighted matching (thanks to David Turner)
 - gower_dist and gower_topn gain `ignore_case` argument for automatic column matching.
