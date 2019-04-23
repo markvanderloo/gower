@@ -15,5 +15,5 @@ URL: https://github.com/markvanderloo/gower
 BugReports: https://github.com/markvanderloo/gower/issues
 Date: 2019-03-07
 Suggests:
-    testthat,
+    tinytest,
 RoxygenNote: 6.1.1
