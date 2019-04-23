@@ -1,4 +1,4 @@
 #!/bin/bash
 
-R -e "devtools::test('pkg')"
+R -e "tinytest::build_install_test('pkg')"
 
