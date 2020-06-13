@@ -53,7 +53,7 @@
 gower_dist <- function(x, y, pair_x=NULL, pair_y=NULL, eps = 1e-8, weights=NULL,
                        ignore_case=FALSE, nthread=getOption("gd_num_thread")){
   check_recycling(nrow(x),nrow(y))
-  if (max(nrow(x),nrow(y)) <= 1000) nthread=1L
+  
   gower_work(x=x,y=y,pair_x=pair_x,pair_y=pair_y
     , n=NULL, eps=eps, weights=weights, ignore_case=ignore_case, nthread=nthread)
 }
@@ -95,6 +95,8 @@ gower_topn <- function(x, y, pair_x=NULL, pair_y = NULL, n=5, eps=1e-8, weights 
 
 gower_work <- function(x, y, pair_x, pair_y, n, eps, weights, ignore_case, nthread){
   stopifnot(is.numeric(eps), eps>0) 
+
+  if (max(nrow(x), nrow(y)) <= 1000) nthread <- 1L
   
   if (is.null(pair_x) & is.null(pair_y)){
     xnames <- if(ignore_case) toupper(names(x)) else names(x)
