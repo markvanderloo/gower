@@ -480,6 +480,10 @@ static void do_gower(
     , nrow_y = length(VECTOR_ELT(y, 0L));
   int nt = MAX(nrow_x, nrow_y);
 
+  // no point paralellizing over a small number of records,
+  // so let's save some system calls.
+
+
   // numerator & denominator. 
   double *num = REAL(out_)
        , *den = work;

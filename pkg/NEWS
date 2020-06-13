@@ -1,3 +1,8 @@
+version 0.2.2
+- Fix: for small numbers of records and high number of threads, the output
+  would depend on 'nthreads'. (Thanks to Matt Austin for reporing). Gower
+  now only paralellizes when more than 1000 records are presented.
+
 version 0.2.1
 - moved test framework to 'tinytest'
 
