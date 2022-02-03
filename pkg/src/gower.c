@@ -334,11 +334,8 @@ static void get_dbl_range(double *x, int nx, double *min, double *max){
     #endif
     for ( int i=0; i<nx; i++){
       if (isfinite(x[i])){
-        if (x[i] > imax){
-          imax = x[i];
-        } else if ( x[i] < imin ){
-          imin = x[i];
-        }
+        if ( x[i] > imax ) imax = x[i];
+        if ( x[i] < imin ) imin = x[i];
       }
     }
   }// end parallel region
@@ -351,13 +348,13 @@ static void get_int_range(int *x, int nx, double *min, double *max){
 
   int *ix = x;
 
-  int imin = x[0]
-    , imax = x[0];
+  int imin = *ix
+    , imax = *ix;
 
   for ( int i=0; i<nx; i++, ix++ ){
-    if ( imin != NA_INTEGER ) break;
     imin = *ix; 
     imax = *ix;
+    if ( imin != NA_INTEGER ) break;
   }
   
   // all missing, range not computable.
@@ -371,13 +368,11 @@ static void get_int_range(int *x, int nx, double *min, double *max){
   #endif
   for ( int i=0; i<nx; i++){
     if ( x[i] != NA_INTEGER ){
-      if (x[i] > imax){
-        imax = x[i];
-      } else if ( x[i] < imin ){
-        imin = x[i];
-      }
+      if ( x[i] > imax ) imax = x[i];
+      if ( x[i] < imin ) imin = x[i];
     }
   }
+
   *min = (double) imin;
   *max = (double) imax;
 }
