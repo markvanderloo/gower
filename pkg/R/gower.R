@@ -144,7 +144,7 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, weights, ignore_case, nthre
   ranges <- numeric(length(pair))
   for ( i in seq_along(pair)){
     if (pair[i] == 0 ) next
-    ranges[i] <- .Call("R_get_xy_range",x[[i]],y[[pair[i]]],nthread)
+    ranges[i] <- .Call("R_get_xy_range",x[[i]],y[[pair[i]]],nthread,PACKAGE="gower")
   }
 
   factor_x <- sapply(x,is.factor)
@@ -179,10 +179,10 @@ gower_work <- function(x, y, pair_x, pair_y, n, eps, weights, ignore_case, nthre
   # translate to C-indices (base-0).
   pair <- as.integer(pair-1L)
   if (is.null(n)){
-    .Call("R_gower", x, y , ranges, pair, factor_pair, eps, weights, nthread)
+    .Call("R_gower", x, y , ranges, pair, factor_pair, eps, weights, nthread, PACKAGE="gower")
     
   } else {
-    L <- .Call("R_gower_topn", x, y, ranges, pair, factor_pair, as.integer(n), eps, weights, nthread)
+    L <- .Call("R_gower_topn", x, y, ranges, pair, factor_pair, as.integer(n), eps, weights, nthread, PACKAGE="gower")
     names(L) <- c("index","distance")
     dim(L$index) <- c(n,nrow(x))
     dim(L$distance) <- dim(L$index)

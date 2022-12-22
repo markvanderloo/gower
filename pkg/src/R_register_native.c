@@ -8,8 +8,8 @@
 */
 
 /* .Call calls */
-extern SEXP R_get_max_threads();
-extern SEXP R_get_thread_limit();
+extern SEXP R_get_max_threads(void);
+extern SEXP R_get_thread_limit(void);
 extern SEXP R_get_xy_range(SEXP, SEXP, SEXP);
 extern SEXP R_gower(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP R_gower_topn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);

@@ -1,3 +1,6 @@
+version 1.0.1
+- Updated compiled code to new compiler prototype warnings.
+
 version 1.0.0
 - Fix: for integer vectors, the output would in some cases depend
   on the order of the input. (Thanks to Tobias Rockel for reporting).

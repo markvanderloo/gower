@@ -57,7 +57,7 @@ static inline int recycle(int i, int nthreads, int ni){
 }
 
 
-SEXP R_get_max_threads(){
+SEXP R_get_max_threads(void){
   SEXP out = allocVector(INTSXP, 1L);
   PROTECT(out);
   INTEGER(out)[0] = 1L;
@@ -69,7 +69,7 @@ SEXP R_get_max_threads(){
 }
 
 
-SEXP R_get_num_procs(){
+SEXP R_get_num_procs(void){
   SEXP out = allocVector(INTSXP, 1L);
   PROTECT(out);
   INTEGER(out)[0] = 1L;
@@ -80,7 +80,7 @@ SEXP R_get_num_procs(){
   return out;
 }
 
-SEXP R_get_thread_limit(){
+SEXP R_get_thread_limit(void){
   SEXP out = allocVector(INTSXP, 1L);
   PROTECT(out);
   INTEGER(out)[0] = 1L;
