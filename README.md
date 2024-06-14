@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/markvanderloo/gower.svg?branch=master)](https://travis-ci.org/markvanderloo/gower)
 [![Coverage Status](https://coveralls.io/repos/markvanderloo/gower/badge.svg)](https://coveralls.io/r/markvanderloo/gower) 
 [![CRAN](http://www.r-pkg.org/badges/version/gower)](https://CRAN.R-project.org/package=gower)
-[![status](https://tinyverse.netlify.com/badge/gower)](https://CRAN.R-project.org/package=gower)
+[![status](https://tinyverse.netlify.app/badge/gower)](https://CRAN.R-project.org/package=gower)
 [![Downloads](http://cranlogs.r-pkg.org/badges/gower)](http://cran.r-project.org/package=gower) 
 
 
