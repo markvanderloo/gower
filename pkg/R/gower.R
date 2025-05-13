@@ -94,7 +94,7 @@ gower_topn <- function(x, y, pair_x=NULL, pair_y = NULL, n=5, eps=1e-8, weights 
 
 
 gower_work <- function(x, y, pair_x, pair_y, n, eps, weights, ignore_case, nthread){
-  stopifnot(is.numeric(eps), eps>0) 
+  stopifnot(is.numeric(eps), eps>0, nrow(x)>0, nrow(y)>0,ncol(x)>0,ncol(y)>0) 
 
   if (max(nrow(x), nrow(y)) <= 1000) nthread <- 1L
   

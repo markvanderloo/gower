@@ -1,5 +1,10 @@
 
 
+expect_error(gower_topn(iris[0,], iris))
+expect_error(gower_topn(iris,iris[0,]))
+expect_error(gower_topn(iris[,0], iris))
+expect_error(gower_topn(iris,iris[,0]))
+
 
 ## distance between logicals
 dL <- expand.grid(c(TRUE,FALSE),c(TRUE,FALSE))

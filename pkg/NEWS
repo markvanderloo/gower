@@ -1,3 +1,7 @@
+version 1.0.2
+- Improved sanity checking on input data frames (Thanks to Brian Ripley for
+  pointing this out)
+
 version 1.0.1
 - Updated compiled code to new compiler prototype warnings.
 

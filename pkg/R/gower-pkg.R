@@ -6,7 +6,7 @@
 #' @docType package
 #' @useDynLib gower, .registration=TRUE
 #' 
-{}
+"_PACKAGE"
 
 
 .onLoad <- function(libname, pkgname){
